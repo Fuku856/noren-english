@@ -1,0 +1,39 @@
+# 出題から外す語。
+#
+# 1日1回の儀式アプリが3日目に陰鬱な文を出す余裕はない。
+# 語彙的な難しさではなく「朝や夜に一人で音読したときの後味」で選んでいる。
+#
+# 行頭 # はコメント。1行1語（部分一致ではなく単語単位で照合する）。
+
+# 死・暴力
+die dies died dying death dead kill kills killed killing murder murdered
+suicide corpse funeral grave bury buried coffin
+gun guns shot shoot shooting stab stabbed knife weapon bomb bombed
+war wars battle enemy attack attacked violence violent blood bleeding
+hit beat beaten punch slap abuse abused
+
+# 病気・事故
+cancer tumor disease illness sick ill infection virus plague
+hospital surgery injured injury wound wounded accident crash crashed
+ambulance emergency dying suffer suffered suffering pain painful
+
+# 犯罪
+steal stole stolen thief robbery rob robbed crime criminal prison jail
+arrest arrested police court guilty punishment
+
+# 酒・煙草・薬物
+drunk drunken alcohol beer wine whiskey liquor smoke smoking cigarette
+cigarettes drug drugs
+
+# 政治・宗教（意見が割れるもの）
+politics political government election vote president minister
+communist communism capitalism protest revolution
+god gods church pray prayer religion religious christian buddhist muslim
+jew jewish bible
+
+# 強い否定・罵倒
+hate hated hates damn hell stupid idiot fool ugly disgusting terrible
+awful horrible miserable hopeless useless worthless
+
+# 金銭トラブル
+debt debts bankrupt poverty poor unemployed fired divorce divorced

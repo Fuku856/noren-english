@@ -10,3 +10,9 @@ scripts/.cache/
 .DS_Store
 Thumbs.db
 coverage/
+
+# 例文の元データ（約30MB）。生成物 public/data/sentences.v1.json はコミットする
+scripts/.cache/
+
+# tsc -b の中間成果物
+*.tsbuildinfo
