@@ -1,0 +1,486 @@
+{
+  "note": "凍結値。フロントと Worker のパリティを守るためのもの。再生成しないこと。",
+  "algorithm": "SHA-256(salt + dateKey) の先頭4バイトをビッグエンディアン uint32 として読み、窓の長さで剰余",
+  "vectors": [
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1378,
+      "expectedInstantMs": 1767275880000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1258,
+      "expectedInstantMs": 1767268680000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 58,
+      "expectedInstantMs": 1767283080000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1266,
+      "expectedInstantMs": 1787054760000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1206,
+      "expectedInstantMs": 1787051160000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1386,
+      "expectedInstantMs": 1787061960000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1324,
+      "expectedInstantMs": 1798722240000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1264,
+      "expectedInstantMs": 1798718640000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 4,
+      "expectedInstantMs": 1798729440000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1288,
+      "expectedInstantMs": 1835440080000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1288,
+      "expectedInstantMs": 1835440080000
+    },
+    {
+      "salt": "00000000-0000-4000-8000-000000000000",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1408,
+      "expectedInstantMs": 1835447280000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1360,
+      "expectedInstantMs": 1767274800000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1180,
+      "expectedInstantMs": 1767264000000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 40,
+      "expectedInstantMs": 1767282000000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1308,
+      "expectedInstantMs": 1787057280000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1248,
+      "expectedInstantMs": 1787053680000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1428,
+      "expectedInstantMs": 1787064480000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1295,
+      "expectedInstantMs": 1798720500000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1235,
+      "expectedInstantMs": 1798716900000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1415,
+      "expectedInstantMs": 1798727700000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1354,
+      "expectedInstantMs": 1835444040000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1234,
+      "expectedInstantMs": 1835436840000
+    },
+    {
+      "salt": "9f2c1d4e-7a3b-4c5d-8e6f-0a1b2c3d4e5f",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 34,
+      "expectedInstantMs": 1835451240000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1378,
+      "expectedInstantMs": 1767275880000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1258,
+      "expectedInstantMs": 1767268680000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 58,
+      "expectedInstantMs": 1767283080000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1361,
+      "expectedInstantMs": 1787060460000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1181,
+      "expectedInstantMs": 1787049660000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 41,
+      "expectedInstantMs": 1787067660000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1375,
+      "expectedInstantMs": 1798725300000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1315,
+      "expectedInstantMs": 1798721700000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 55,
+      "expectedInstantMs": 1798732500000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1353,
+      "expectedInstantMs": 1835443980000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1173,
+      "expectedInstantMs": 1835433180000
+    },
+    {
+      "salt": "noren-test-salt",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 33,
+      "expectedInstantMs": 1835451180000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1297,
+      "expectedInstantMs": 1767271020000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1177,
+      "expectedInstantMs": 1767263820000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-01-01",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1417,
+      "expectedInstantMs": 1767278220000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1277,
+      "expectedInstantMs": 1787055420000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1157,
+      "expectedInstantMs": 1787048220000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-08-18",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1397,
+      "expectedInstantMs": 1787062620000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1371,
+      "expectedInstantMs": 1798725060000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1251,
+      "expectedInstantMs": 1798717860000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2026-12-31",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 51,
+      "expectedInstantMs": 1798732260000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1260,
+        "end": 1380
+      },
+      "expectedMinute": 1283,
+      "expectedInstantMs": 1835439780000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1140,
+        "end": 1320
+      },
+      "expectedMinute": 1283,
+      "expectedInstantMs": 1835439780000
+    },
+    {
+      "salt": "ええと日本語のsalt",
+      "dateKey": "2028-02-29",
+      "window": {
+        "start": 1380,
+        "end": 60
+      },
+      "expectedMinute": 1403,
+      "expectedInstantMs": 1835446980000
+    }
+  ]
+}
