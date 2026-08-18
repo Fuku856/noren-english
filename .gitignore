@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dev-dist/
+.wrangler/
+scripts/.cache/
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+coverage/
