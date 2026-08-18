@@ -21,9 +21,15 @@
       暖簾は画面モジュールの外に置く。開店中の画面が結果画面に差し替わっても
       暖簾自身は残り、「上がる」動きが見える。
     -->
-    <div class="noren-layer noren-layer--up" data-noren-slide hidden>
-      <div class="crossbar crossbar--lit" aria-hidden="true"></div>
-      <div class="noren-body" data-noren-body></div>
+    <div class="noren-layer noren-layer--up" data-noren-slide hidden aria-hidden="true">
+      <div class="noren-bar"></div>
+      <!-- 3枚に割れているのが暖簾。切れ込みが無いとただの赤い矩形になる -->
+      <div class="noren-body" data-noren-body>
+        <span class="noren-panel"></span>
+        <span class="noren-panel"></span>
+        <span class="noren-panel"></span>
+        <span class="noren-yoke"></span>
+      </div>
     </div>
 
     <!-- 初回設定：時間帯を選ぶ -->
@@ -88,6 +94,13 @@
     <!-- 閉店中。ボタンはほぼ無い -->
     <template id="tpl-closed">
       <div class="screen screen--closed">
+        <!--
+          暖簾を掛ける横木だけを残す。何も無い店先であって、空白ではない。
+          開店時に暖簾が下りてくる位置とぴったり同じにしてある。
+          ここに掛かるものがある、と分かることが翌日の開店を待たせる。
+        -->
+        <div class="crossbar crossbar--rail" aria-hidden="true"></div>
+
         <button class="icon-btn icon-btn--tl" data-settings aria-label="設定">
           設定
         </button>
@@ -97,9 +110,6 @@
           <p class="closed__clock" data-time>--:--</p>
           <p class="closed__note quiet" data-note></p>
         </div>
-
-        <!-- 暖簾を掛ける横木だけ。何も無い店先であって、空白ではない -->
-        <div class="crossbar" aria-hidden="true"></div>
 
         <div class="grow"></div>
 
@@ -119,11 +129,9 @@
       <div class="screen screen--open">
         <p class="countdown" data-countdown aria-live="off">5:00</p>
 
-        <div class="grow"></div>
-
         <p class="open__prompt" data-sentence></p>
 
-        <div class="chips" data-placed aria-label="並べた語"></div>
+        <div class="chips chips--placed" data-placed aria-label="並べた語"></div>
         <div class="chips chips--pool" data-pool aria-label="語を選ぶ"></div>
 
         <div class="open__actions">

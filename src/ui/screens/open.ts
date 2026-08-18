@@ -91,7 +91,9 @@ export const openScreen: ScreenModule = (root, state, dispatch) => {
     }
 
     // 数字は毎秒ここだけが書き換わる。暖簾そのものは main.ts が持つ
-    setText(countdown, mmss(session.endsAtMs - s.nowMs));
+    const remaining = session.endsAtMs - s.nowMs;
+    setText(countdown, mmss(remaining));
+    countdown.classList.toggle("countdown--last", remaining <= 60_000);
 
     // 並びが変わったときだけ組み直す（毎秒のティックで作り直さない）
     const sig = `${session.arrange.placed.map((c) => c.id).join(",")}|${session.arrange.pool

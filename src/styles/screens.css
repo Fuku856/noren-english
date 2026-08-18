@@ -17,15 +17,21 @@
 /* ---------------------------------------------------------------- 部品 */
 
 .btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  min-height: var(--touch);
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--paper-faint);
+  border: 1px solid var(--line-strong);
   border-radius: 2px;
   color: var(--paper);
+  font-size: var(--step-0);
   text-align: center;
   letter-spacing: 0.08em;
-  transition: border-color 200ms var(--ease);
+  transition:
+    border-color 200ms var(--ease),
+    color 200ms var(--ease);
 }
 
 .btn:hover:not(:disabled) {
@@ -38,22 +44,31 @@
   cursor: default;
 }
 
+/* 控えめだが、読めなくはしない */
 .btn--quiet {
   border-color: var(--line);
   color: var(--paper-dim);
-  font-size: var(--step--1);
+  font-size: var(--step-0);
 }
 
 .icon-btn {
   position: absolute;
-  top: max(var(--space-3), env(safe-area-inset-top));
-  color: var(--paper-faint);
-  font-size: var(--step--1);
-  letter-spacing: 0.15em;
+  top: max(var(--space-2), env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0 var(--space-2);
+  color: var(--paper-dim);
+  font-size: var(--step-0);
+  letter-spacing: 0.12em;
+}
+
+.icon-btn:hover {
+  color: var(--paper);
 }
 
 .icon-btn--tl {
-  left: var(--space-3);
+  left: calc(var(--space-3) - var(--space-2));
 }
 
 .field {
@@ -64,7 +79,7 @@
 
 .field__label {
   color: var(--paper-dim);
-  font-size: var(--step--1);
+  font-size: var(--step-0);
   letter-spacing: 0.12em;
 }
 
@@ -86,18 +101,21 @@
   min-height: 1.6em;
 }
 
+/* 錆朱そのものは地に対して 3.06:1 で読めないので、文字にするときは明るくする */
 .field__hint--bad {
-  color: var(--rust);
+  color: #d4705c;
 }
 
 .select {
   appearance: none;
+  min-height: var(--touch);
   padding: var(--space-1) var(--space-2);
   background: var(--charcoal);
   color: var(--paper);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 2px;
   font: inherit;
+  font-size: var(--step-0);
   font-variant-numeric: tabular-nums;
 }
 
@@ -123,15 +141,23 @@
 .crossbar {
   flex: 0 0 auto;
   height: 1px;
-  background: var(--line);
+  background: var(--line-strong);
 }
 
-.crossbar--lit {
-  height: 2px;
-  background: var(--paper-faint);
+/*
+ * 閉店中に残る横木。暖簾（.noren-bar）と同じ位置・同じ太さにしてある。
+ * ずれていると「ここに掛かる」という約束が伝わらない。
+ */
+.crossbar--rail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(var(--line-strong), var(--line));
 }
 
-/* 上から するり と下りる外側。画面モジュールの外に置く */
+/* 画面モジュールの外に置く。画面が差し替わっても暖簾は残り、上がる動きが見える */
 .noren-layer {
   position: fixed;
   top: 0;
@@ -147,17 +173,91 @@
   transform: translateY(-101%);
 }
 
+/* 暖簾を通す横木 */
+.noren-bar {
+  height: 3px;
+  background: linear-gradient(var(--paper-faint), var(--line-strong));
+}
+
 /*
- * 5分かけて縮む内側。
- * scaleY を使うのは無地だから（伸縮しても歪むものが無い）。
- * 高さではなく transform なのは合成レイヤで動かすため。
+ * 布そのもの。
+ *
+ * 残り時間は clip-path で裾から詰める。scaleY だと布ごと押し潰されて
+ * 切れ込みの比率まで変わってしまうので、丈だけが縮むこちらを使う。
+ * clip-path も合成レイヤで動くので、フレーム毎の JS は要らない。
  */
 .noren-body {
-  height: 34vh;
-  min-height: 140px;
-  transform-origin: top center;
-  transform: scaleY(1);
-  will-change: transform;
+  position: relative;
+  display: flex;
+  gap: 8px;
+  height: var(--noren-height);
+  min-height: 132px;
+  clip-path: inset(0 0 0 0);
+  will-change: clip-path;
+}
+
+/*
+ * 3枚に割れた布。隙間がそのまま切れ込みになる。
+ *
+ * 裾に縫い返しの線は置かない。clip-path で裾から詰めるので、
+ * 下端に置いた飾りは開店から数秒で切り落とされて二度と見えなくなる。
+ * 代わりに、どこで切られても布に見えるよう縦の折り皺で陰影をつける。
+ */
+.noren-panel {
+  position: relative;
+  flex: 1 1 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0%) 0 14px,
+      rgb(0 0 0 / 5%) 14px 15px,
+      rgb(0 0 0 / 0%) 15px 29px
+    ),
+    linear-gradient(
+      180deg,
+      var(--rust-deep) 0%,
+      var(--rust) 7%,
+      var(--rust) 100%
+    );
+}
+
+/* 布の左右の端。輪郭が締まると「掛かっている」感じが出る */
+.noren-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow:
+    inset 2px 0 0 rgb(0 0 0 / 12%),
+    inset -2px 0 0 rgb(0 0 0 / 12%);
+}
+
+/* 切れ込みは裾からだけ。上のほうは縫い合わさっている */
+.noren-yoke {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--noren-slit-top);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0%) 0 14px,
+      rgb(0 0 0 / 5%) 14px 15px,
+      rgb(0 0 0 / 0%) 15px 29px
+    ),
+    linear-gradient(
+      180deg,
+      var(--rust-deep) 0%,
+      var(--rust) 7%,
+      var(--rust) 100%
+    );
+}
+
+/* 竿に通した部分の陰。布が横木の向こうに回り込んで見える */
+.noren-yoke::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 9px;
+  background: linear-gradient(rgb(0 0 0 / 32%), rgb(0 0 0 / 0%));
 }
 
 /* ---------------------------------------------------------------- 閉店中 */
@@ -200,8 +300,8 @@
 }
 
 .week__dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--line);
 }
@@ -212,7 +312,7 @@
 
 .week__dot--missed {
   background: transparent;
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
 .week__dot--today {
@@ -225,11 +325,12 @@
   justify-content: flex-end;
 }
 
-/* 目立たせない。救いであって近道ではない */
+/* 目立たせない。救いであって近道ではない。ただし読めなくはしない */
 .ticket {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-1);
+  min-height: var(--touch);
   padding: var(--space-1) var(--space-2);
   color: var(--paper-faint);
   font-size: var(--step--1);
@@ -240,35 +341,52 @@
 
 .ticket[data-usable="true"] {
   color: var(--paper-dim);
-  border-color: var(--line);
+  border-color: var(--line-strong);
 }
 
 .ticket__count {
   font-variant-numeric: tabular-nums;
+  font-size: var(--step-0);
 }
 
 /* ---------------------------------------------------------------- 開店中 */
 
+/*
+ * 縦に収める。長い英文だと語チップが増えるので、
+ * あふれるのは語のプールだけにして「できた」は常に見える位置に留める。
+ */
 .screen--open {
   position: relative;
-  padding-top: calc(34vh + var(--space-3));
+  padding-top: calc(var(--noren-height) + var(--space-3));
 }
 
+/*
+ * 残り時間。暖簾が本体で数字は補助だが、
+ * 見えない補助は補助ではないので、はっきり読める大きさにする。
+ */
 .countdown {
-  position: absolute;
-  top: max(var(--space-3), env(safe-area-inset-top));
+  position: fixed;
+  top: max(var(--space-2), env(safe-area-inset-top));
   right: var(--space-3);
-  z-index: 2;
+  z-index: 3;
   color: var(--paper);
+  font-family: var(--serif);
+  font-size: var(--step-2);
+  font-weight: 300;
   font-variant-numeric: tabular-nums;
-  font-size: var(--step-0);
-  letter-spacing: 0.1em;
-  mix-blend-mode: difference;
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
+}
+
+/* 残り1分を切ったら少しだけ知らせる。急かさない */
+.countdown--last {
+  color: #f0d9c8;
 }
 
 /* 並べ替えでは英文が答えなので出さない。和訳を手がかりにする */
 .open__prompt {
-  margin-bottom: var(--space-4);
+  flex: 0 0 auto;
+  margin-bottom: var(--space-3);
   font-size: var(--step-1);
   line-height: 1.7;
   color: var(--paper);
@@ -282,32 +400,51 @@
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
-  min-height: 3rem;
+  align-content: flex-start;
+  gap: var(--space-2);
   padding: var(--space-2);
-  border-bottom: 1px solid var(--line);
 }
 
+/* 語を置く場所。空でも「ここに置く」と分かる見た目にする */
+.chips--placed {
+  flex: 0 0 auto;
+  min-height: calc(var(--touch) + var(--space-2) * 2);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.chips--placed:empty::before {
+  content: "ここに並べる";
+  align-self: center;
+  color: var(--paper-faint);
+  font-size: var(--step--1);
+  letter-spacing: 0.12em;
+}
+
+/* あふれるのはここだけ */
 .chips--pool {
-  border-bottom: none;
-  border-top: 1px solid var(--line);
+  flex: 1 1 auto;
+  min-height: calc(var(--touch) + var(--space-2) * 2);
   margin-top: var(--space-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .chip {
-  padding: var(--space-1) var(--space-2);
+  min-height: var(--touch);
+  padding: var(--space-1) var(--space-3);
   background: var(--charcoal);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 2px;
   color: var(--paper);
-  font-size: var(--step-0);
+  font-size: var(--step-1);
 }
 
 .chip:hover {
-  border-color: var(--paper-faint);
+  border-color: var(--paper-dim);
 }
 
 .open__actions {
+  flex: 0 0 auto;
   display: flex;
   gap: var(--space-2);
   margin-top: var(--space-3);
@@ -330,7 +467,7 @@
   font-size: var(--step-3);
   font-weight: 200;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--paper);
 }
 
 .result__honest {

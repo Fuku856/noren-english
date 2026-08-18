@@ -33,7 +33,13 @@ body {
   min-height: 100dvh;
   padding: max(var(--space-3), env(safe-area-inset-top)) var(--space-3)
     max(var(--space-3), env(safe-area-inset-bottom));
-  overflow: hidden;
+  /*
+   * 横は切る（暖簾のスライドで横スクロールが出ないように）。
+   * 縦は逃がす。ここを hidden にすると、画面が短い端末で
+   * 「できた」ボタンが折り返しの下に隠れて二度と押せなくなる。
+   */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 h1,
@@ -120,6 +126,12 @@ button {
   text-align: center;
 }
 
+/*
+ * 動きを嫌う設定では transition を止める。
+ * 暖簾はこの指定で CSS の連続アニメーションが効かなくなるが、
+ * noren.ts が30秒ごとの段階更新に切り替えるので「減っていること」は伝わる。
+ * 暖簾は装飾ではなく情報なので、縮むこと自体は残す。
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
