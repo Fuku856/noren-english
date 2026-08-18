@@ -1,0 +1,64 @@
+/*
+ * 主題は夜の店先。見立てを装飾ではなく機能に使う。
+ *
+ * 錆朱は「開店中だけ」に出る色。閉店中の画面に一切出さないという仕様上の要求を、
+ * CSS の構造で保証している（--accent は [data-screen="open"] 配下でしか解決しない）。
+ * 変数を足すときも、この分離を崩さないこと。
+ */
+
+:root {
+  /* 地 */
+  --ink: #15130f; /* 漆黒 */
+  --charcoal: #2a2622; /* 消炭 */
+  --charcoal-soft: #201d19;
+
+  /* 文字 */
+  --paper: #e8e4d9; /* 生成 */
+  --paper-dim: #9a958a;
+  --paper-faint: #5d5951;
+
+  /* 意味を持つ色 */
+  --rust: #a8412f; /* 錆朱。開店中だけ */
+  --bamboo: #6e8b62; /* 若竹。一致 */
+
+  /* 開店中以外では錆朱を参照できないようにしておく */
+  --accent: var(--paper-dim);
+
+  --line: #322d28;
+
+  --serif: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans:
+    system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic",
+    sans-serif;
+
+  --step--1: clamp(0.78rem, 0.74rem + 0.2vw, 0.86rem);
+  --step-0: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.6rem, 1.4rem + 1vw, 2.1rem);
+  --step-3: clamp(2.2rem, 1.8rem + 2vw, 3rem);
+
+  --space-1: 0.35rem;
+  --space-2: 0.7rem;
+  --space-3: 1.2rem;
+  --space-4: 2rem;
+  --space-5: 3.2rem;
+
+  --ease: cubic-bezier(0.33, 0, 0.15, 1);
+
+  /* 暖簾が下りる/上がる速さ。急かさない */
+  --noren-slide-ms: 900ms;
+}
+
+/* 開いた瞬間に初めて色が差す */
+[data-screen="open"],
+[data-screen="result"] {
+  --accent: var(--rust);
+}
+
+/*
+ * 暖簾は #app の外にあるので --accent を継承できない。
+ * 錆朱を直接指定するのはこの1箇所だけ（閉店中は hidden で DOM ごと出さない）。
+ */
+.noren-body {
+  background: var(--rust);
+}

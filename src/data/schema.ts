@@ -68,7 +68,9 @@ export function defaultSettings(): Settings {
     schemaVersion: SCHEMA_VERSION,
     window: { ...DEFAULT_WINDOW },
     pending: null,
-    mode: "speak",
+    // Phase 1 は並べ替えのみ。Phase 2 で SpeechRecognition が使える端末だけ
+    // "speak" に切り替える（capabilities.ts）
+    mode: "arrange",
     installedPrompted: false,
   };
 }
@@ -105,7 +107,7 @@ function parseWindow(u: unknown): TimeWindow | null {
 }
 
 function parseMode(u: unknown): Mode {
-  return u === "arrange" ? "arrange" : "speak";
+  return u === "speak" ? "speak" : "arrange";
 }
 
 export function parseSettings(u: unknown): Settings {

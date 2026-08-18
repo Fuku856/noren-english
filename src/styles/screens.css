@@ -1,0 +1,377 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.screen--pad {
+  padding-top: var(--space-4);
+}
+
+.title {
+  font-size: var(--step-2);
+  color: var(--paper);
+}
+
+/* ---------------------------------------------------------------- 部品 */
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--paper-faint);
+  border-radius: 2px;
+  color: var(--paper);
+  text-align: center;
+  letter-spacing: 0.08em;
+  transition: border-color 200ms var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--paper-dim);
+}
+
+.btn:disabled {
+  color: var(--paper-faint);
+  border-color: var(--line);
+  cursor: default;
+}
+
+.btn--quiet {
+  border-color: var(--line);
+  color: var(--paper-dim);
+  font-size: var(--step--1);
+}
+
+.icon-btn {
+  position: absolute;
+  top: max(var(--space-3), env(safe-area-inset-top));
+  color: var(--paper-faint);
+  font-size: var(--step--1);
+  letter-spacing: 0.15em;
+}
+
+.icon-btn--tl {
+  left: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  color: var(--paper-dim);
+  font-size: var(--step--1);
+  letter-spacing: 0.12em;
+}
+
+.field__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.field__sep {
+  color: var(--paper-dim);
+  font-size: var(--step--1);
+}
+
+.field__hint {
+  color: var(--paper-faint);
+  font-size: var(--step--1);
+  min-height: 1.6em;
+}
+
+.field__hint--bad {
+  color: var(--rust);
+}
+
+.select {
+  appearance: none;
+  padding: var(--space-1) var(--space-2);
+  background: var(--charcoal);
+  color: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.4em;
+  color: var(--paper-dim);
+  font-size: var(--step-0);
+  line-height: 2;
+}
+
+.steps strong {
+  color: var(--paper);
+  font-weight: 400;
+}
+
+.credits a {
+  color: var(--paper-dim);
+}
+
+/* ---------------------------------------------------------------- 横木と暖簾 */
+
+.crossbar {
+  flex: 0 0 auto;
+  height: 1px;
+  background: var(--line);
+}
+
+.crossbar--lit {
+  height: 2px;
+  background: var(--paper-faint);
+}
+
+/* 上から するり と下りる外側。画面モジュールの外に置く */
+.noren-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  transform: translateY(0);
+  transition: transform var(--noren-slide-ms) var(--ease);
+  pointer-events: none;
+}
+
+.noren-layer--up {
+  transform: translateY(-101%);
+}
+
+/*
+ * 5分かけて縮む内側。
+ * scaleY を使うのは無地だから（伸縮しても歪むものが無い）。
+ * 高さではなく transform なのは合成レイヤで動かすため。
+ */
+.noren-body {
+  height: 34vh;
+  min-height: 140px;
+  transform-origin: top center;
+  transform: scaleY(1);
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------- 閉店中 */
+
+.screen--closed {
+  padding-top: var(--space-5);
+}
+
+.closed__time {
+  flex: 0 0 auto;
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.closed__label {
+  color: var(--paper-dim);
+  font-family: var(--serif);
+  font-size: var(--step--1);
+  letter-spacing: 0.3em;
+}
+
+.closed__clock {
+  font-family: var(--serif);
+  font-size: var(--step-3);
+  font-weight: 200;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper);
+}
+
+.closed__note {
+  margin-top: var(--space-1);
+}
+
+.week {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+}
+
+.week__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.week__dot--solved {
+  background: var(--paper-dim);
+}
+
+.week__dot--missed {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.week__dot--today {
+  box-shadow: inset 0 0 0 1px var(--paper-faint);
+}
+
+.closed__foot {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 目立たせない。救いであって近道ではない */
+.ticket {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  color: var(--paper-faint);
+  font-size: var(--step--1);
+  letter-spacing: 0.1em;
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.ticket[data-usable="true"] {
+  color: var(--paper-dim);
+  border-color: var(--line);
+}
+
+.ticket__count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- 開店中 */
+
+.screen--open {
+  position: relative;
+  padding-top: calc(34vh + var(--space-3));
+}
+
+.countdown {
+  position: absolute;
+  top: max(var(--space-3), env(safe-area-inset-top));
+  right: var(--space-3);
+  z-index: 2;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step-0);
+  letter-spacing: 0.1em;
+  mix-blend-mode: difference;
+}
+
+/* 並べ替えでは英文が答えなので出さない。和訳を手がかりにする */
+.open__prompt {
+  margin-bottom: var(--space-4);
+  font-size: var(--step-1);
+  line-height: 1.7;
+  color: var(--paper);
+}
+
+.open__prompt--ja {
+  font-family: var(--serif);
+  font-weight: 300;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-height: 3rem;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.chips--pool {
+  border-bottom: none;
+  border-top: 1px solid var(--line);
+  margin-top: var(--space-2);
+}
+
+.chip {
+  padding: var(--space-1) var(--space-2);
+  background: var(--charcoal);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--paper);
+  font-size: var(--step-0);
+}
+
+.chip:hover {
+  border-color: var(--paper-faint);
+}
+
+.open__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.open__actions .btn {
+  flex: 1 1 0;
+}
+
+/* ---------------------------------------------------------------- 結果 */
+
+.result {
+  justify-content: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.result__score {
+  font-family: var(--serif);
+  font-size: var(--step-3);
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.result__honest {
+  margin-top: var(--space-3);
+}
+
+/* 一致 / 誤り / 欠落。色だけに頼らず下線の種類でも区別する */
+.tok {
+  position: relative;
+  display: inline-block;
+}
+
+.tok::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.18em;
+  height: 2px;
+}
+
+.tok--match {
+  color: var(--paper);
+}
+
+.tok--match::after {
+  background: var(--bamboo);
+}
+
+.tok--wrong {
+  color: var(--paper);
+}
+
+.tok--wrong::after {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--rust) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+.tok--miss {
+  color: var(--paper-faint);
+}

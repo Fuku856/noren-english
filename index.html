@@ -16,6 +16,182 @@
   </head>
   <body>
     <main id="app" data-screen="boot"></main>
+
+    <!--
+      暖簾は画面モジュールの外に置く。開店中の画面が結果画面に差し替わっても
+      暖簾自身は残り、「上がる」動きが見える。
+    -->
+    <div class="noren-layer noren-layer--up" data-noren-slide hidden>
+      <div class="crossbar crossbar--lit" aria-hidden="true"></div>
+      <div class="noren-body" data-noren-body></div>
+    </div>
+
+    <!-- 初回設定：時間帯を選ぶ -->
+    <template id="tpl-onboarding">
+      <div class="screen screen--pad stack">
+        <h1 class="title">のれん</h1>
+        <p class="quiet">
+          1日1回、選んだ時間帯のどこかで5分だけ開きます。<br />
+          何時に開くかは、その日にならないと分かりません。
+        </p>
+
+        <div class="field">
+          <label class="field__label" for="ob-start">開く時間帯</label>
+          <div class="field__row">
+            <select id="ob-start" class="select" data-start></select>
+            <span class="field__sep">から</span>
+            <select id="ob-len" class="select" data-length></select>
+            <span class="field__sep">のあいだ</span>
+          </div>
+          <p class="field__hint" data-hint></p>
+        </div>
+
+        <div class="grow"></div>
+        <button class="btn" data-next>これで始める</button>
+        <p class="quiet center">あとから変えられます（変更は翌日から反映）</p>
+      </div>
+    </template>
+
+    <!-- ホーム画面追加の案内。後回しにしない -->
+    <template id="tpl-install">
+      <div class="screen screen--pad stack">
+        <h1 class="title">ホーム画面に追加してください</h1>
+        <p class="quiet">
+          iPhone の Safari は、7日間アクセスがないサイトの保存データを消します。<br />
+          ホーム画面に追加したアプリはこの対象外です。<br />
+          <strong>記録を残すために、いま追加してください。</strong>
+        </p>
+
+        <ol class="steps" data-ios hidden>
+          <li><span class="steps__icon" aria-hidden="true">􀈂</span> 下の「共有」ボタンを押す</li>
+          <li>メニューを下にたどる</li>
+          <li><strong>「ホーム画面に追加」</strong>を選ぶ</li>
+          <li>右上の「追加」を押す</li>
+        </ol>
+
+        <ol class="steps" data-android hidden>
+          <li>右上のメニュー（︙）を押す</li>
+          <li><strong>「アプリをインストール」</strong>を選ぶ</li>
+        </ol>
+
+        <p class="quiet" data-desktop hidden>
+          この端末ではアドレスバーのインストールボタンから追加できます。
+        </p>
+
+        <button class="btn" data-install hidden>ホーム画面に追加</button>
+
+        <div class="grow"></div>
+        <button class="btn btn--quiet" data-skip>あとで</button>
+      </div>
+    </template>
+
+    <!-- 閉店中。ボタンはほぼ無い -->
+    <template id="tpl-closed">
+      <div class="screen screen--closed">
+        <button class="icon-btn icon-btn--tl" data-settings aria-label="設定">
+          設定
+        </button>
+
+        <div class="closed__time">
+          <p class="closed__label">本日</p>
+          <p class="closed__clock" data-time>--:--</p>
+          <p class="closed__note quiet" data-note></p>
+        </div>
+
+        <!-- 暖簾を掛ける横木だけ。何も無い店先であって、空白ではない -->
+        <div class="crossbar" aria-hidden="true"></div>
+
+        <div class="grow"></div>
+
+        <div class="week" data-week aria-label="今週の記録"></div>
+
+        <div class="closed__foot">
+          <button class="ticket" data-ticket>
+            <span class="ticket__label">チケット</span>
+            <span class="ticket__count" data-ticket-count>0</span>
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <!-- 開店中 -->
+    <template id="tpl-open">
+      <div class="screen screen--open">
+        <p class="countdown" data-countdown aria-live="off">5:00</p>
+
+        <div class="grow"></div>
+
+        <p class="open__prompt" data-sentence></p>
+
+        <div class="chips" data-placed aria-label="並べた語"></div>
+        <div class="chips chips--pool" data-pool aria-label="語を選ぶ"></div>
+
+        <div class="open__actions">
+          <button class="btn btn--quiet" data-undo>ひとつ戻す</button>
+          <button class="btn" data-submit disabled>できた</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- 結果。3秒で閉店中に戻る -->
+    <template id="tpl-result">
+      <div class="screen screen--pad result">
+        <p class="en" data-sentence></p>
+        <p class="result__score" data-score></p>
+        <p class="ja" data-ja></p>
+        <p class="quiet result__honest" data-honest hidden>
+          発音の良し悪しは判定していません。認識器が聞き取れたかどうかだけを見ています。
+        </p>
+      </div>
+    </template>
+
+    <!-- 設定 -->
+    <template id="tpl-settings">
+      <div class="screen screen--pad stack">
+        <button class="icon-btn icon-btn--tl" data-back aria-label="戻る">戻る</button>
+        <h1 class="title">設定</h1>
+
+        <div class="field">
+          <label class="field__label" for="st-start">開く時間帯</label>
+          <div class="field__row">
+            <select id="st-start" class="select" data-start></select>
+            <span class="field__sep">から</span>
+            <select id="st-len" class="select" data-length></select>
+            <span class="field__sep">のあいだ</span>
+          </div>
+          <p class="field__hint" data-hint></p>
+          <button class="btn btn--quiet" data-apply>変更する</button>
+          <p class="quiet" data-pending hidden></p>
+        </div>
+
+        <div class="field">
+          <p class="field__label">ホーム画面</p>
+          <button class="btn btn--quiet" data-install-guide>追加のしかた</button>
+          <p class="quiet">
+            iPhone では、追加しないと7日で記録が消えることがあります。
+          </p>
+        </div>
+
+        <div class="grow"></div>
+
+        <div class="credits quiet">
+          <p>
+            例文は
+            <a href="https://tatoeba.org" target="_blank" rel="noreferrer noopener"
+              >Tatoeba Project</a
+            >
+            より。ライセンスは
+            <a data-license target="_blank" rel="noreferrer noopener">CC-BY 2.0 FR</a>。
+          </p>
+          <p>
+            <a href="/data/ATTRIBUTION.txt" target="_blank" rel="noreferrer noopener"
+              >出典の一覧</a
+            >
+          </p>
+        </div>
+      </div>
+    </template>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -52,6 +52,8 @@ export interface Outcome {
   sentence: Sentence;
   answer: string;
   accuracy: number;
+  /** 実際に解いたモード。設定値ではなくこちらを表示の判断に使う。 */
+  mode: Mode;
   /** 時間切れで終わったか。黙って握りつぶさず、正直に見せる。 */
   timedOut: boolean;
 }
@@ -93,6 +95,8 @@ export type Event =
   | { type: "SESSION_EXPIRED" }
   | { type: "RESULT_DISMISSED" }
   | { type: "WINDOW_REQUESTED"; window: TimeWindow }
+  | { type: "ONBOARDING_DONE"; window: TimeWindow }
+  | { type: "RESOLVE_OPEN_TIME" }
   | { type: "INSTALL_ACKNOWLEDGED" }
   | { type: "NAVIGATE"; screen: Screen };
 
@@ -217,7 +221,13 @@ function finishSession(
       ...s,
       screen: "result",
       session: null,
-      outcome: { sentence: session.sentence, answer, accuracy, timedOut },
+      outcome: {
+        sentence: session.sentence,
+        answer,
+        accuracy,
+        mode: session.mode,
+        timedOut,
+      },
       records: upsertRecord(s.records, record),
     },
     effects: [{ k: "norenClose" }, { k: "persist", what: "records" }],
@@ -295,6 +305,9 @@ export function reduce(s: AppState, e: Event): Step {
       };
     }
 
+    case "RESOLVE_OPEN_TIME":
+      return { state: s, effects: [{ k: "resolveOpenTime", dateKey: s.todayKey }] };
+
     case "TICK":
       return onTick(s, e.nowMs);
 
@@ -350,6 +363,19 @@ export function reduce(s: AppState, e: Event): Step {
       return {
         state: { ...s, settings },
         effects: [{ k: "persist", what: "settings" }],
+      };
+    }
+
+    case "ONBOARDING_DONE": {
+      // 初回だけは即日から効かせてよい。まだ今日の開店時刻を一度も見ていないので、
+      // 窓を狭めて即開店するという抜け道が成立しない
+      const settings: Settings = { ...s.settings, window: e.window, pending: null };
+      return {
+        state: { ...s, settings, screen: "install", openMinute: null, openAtMs: null },
+        effects: [
+          { k: "persist", what: "settings" },
+          { k: "resolveOpenTime", dateKey: s.todayKey },
+        ],
       };
     }
 
