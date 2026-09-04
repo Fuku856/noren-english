@@ -20,7 +20,9 @@ import { initStorage, isPersistent } from "./data/storage";
 import { loadTickets, refillIfNeeded, saveTickets } from "./data/tickets";
 import { loadSentences } from "./domain/sentences";
 import { watchInstallPrompt } from "./pwa/installPrompt";
-import { createNoren } from "./ui/components/noren";
+import { canUseSpeakMode } from "./speech/capabilities";
+import { speakEnglish } from "./speech/tts";
+import { createTimerBar } from "./ui/components/timerBar";
 import { createRenderer } from "./ui/render";
 import { closedScreen } from "./ui/screens/closed";
 import { installScreen } from "./ui/screens/install";
@@ -39,8 +41,15 @@ function boot(): void {
   const todayKey = dateKeyOf(startedAt);
 
   const salt = loadOrCreateSalt();
-  const settings = promotePending(loadSettings(), todayKey);
-  saveSettings(settings);
+  const stored = promotePending(loadSettings(), todayKey);
+  saveSettings(stored);
+
+  // 聞き取れない端末では並べ替えで動かす。**保存された希望は書き換えない**
+  // （別の端末で読み込み直したときに音読へ戻れる）
+  const settings =
+    stored.mode === "speak" && !canUseSpeakMode()
+      ? { ...stored, mode: "arrange" as const }
+      : stored;
 
   const tickets = refillIfNeeded(loadTickets(), todayKey);
   saveTickets(tickets);
@@ -61,15 +70,15 @@ function boot(): void {
     },
   });
 
-  // 暖簾は画面モジュールの外。開店中の画面が結果画面に差し替わっても
-  // 暖簾自身は残るので、「上がる」動きが見える
-  const norenSlide = document.querySelector<HTMLElement>("[data-noren-slide]");
-  const norenBody = document.querySelector<HTMLElement>("[data-noren-body]");
-  const noren =
-    norenSlide && norenBody ? createNoren(norenSlide, norenBody) : null;
+  // 残り時間のバーは画面モジュールの外。開店中の画面が結果画面に差し替わっても
+  // バー自身は残るので、時間が尽きたことが動きで伝わる
+  const timerHost = document.querySelector<HTMLElement>("[data-timer]");
+  const timerFill = document.querySelector<HTMLElement>("[data-timer-fill]");
+  const timer =
+    timerHost && timerFill ? createTimerBar(timerHost, timerFill) : null;
 
   store.setEffectRunner(
-    createEffectRunner({ dispatch: store.dispatch, now, noren }),
+    createEffectRunner({ dispatch: store.dispatch, now, timer, speak: speakEnglish }),
   );
   store.subscribe(render);
 
@@ -107,7 +116,7 @@ function boot(): void {
   startTicker((nowMs) => {
     store.dispatch({ type: "TICK", nowMs });
     // スリープや タブ切り替えで生じたズレをここで自己修正する
-    if (store.getState().session) noren?.resync(nowMs);
+    if (store.getState().session) timer?.resync(nowMs);
   });
 
   if (import.meta.env.DEV) installDevPanel(store);

@@ -13,7 +13,7 @@ import { KEYS, writeJson } from "@/data/storage";
 import type { AppState, Effect } from "./machine";
 import type { Dispatch } from "./store";
 
-export interface NorenHandle {
+export interface TimerHandle {
   open(endsAtMs: number, totalMs: number, nowMs: number): void;
   close(): void;
 }
@@ -21,7 +21,7 @@ export interface NorenHandle {
 export interface EffectDeps {
   dispatch: Dispatch;
   now: () => number;
-  noren: NorenHandle | null;
+  timer: TimerHandle | null;
   speak?: (text: string) => void;
 }
 
@@ -69,14 +69,14 @@ export function createEffectRunner(deps: EffectDeps) {
         return;
       }
 
-      case "norenOpen": {
-        deps.noren?.open(effect.endsAtMs, effect.totalMs, deps.now());
+      case "timerStart": {
+        deps.timer?.open(effect.endsAtMs, effect.totalMs, deps.now());
         return;
       }
 
-      case "norenClose": {
+      case "timerStop": {
         clearExpiry();
-        deps.noren?.close();
+        deps.timer?.close();
         return;
       }
 

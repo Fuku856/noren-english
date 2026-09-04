@@ -10,6 +10,7 @@
  * ここでは時刻を読まない・保存しない・DOM に触らない。全部 Event と Effect で受け渡す。
  */
 
+import { grade, type Grade } from "@shared/align";
 import { addDays, dateKeyOf, formatMinute, jstMinuteToEpoch } from "@shared/dateKey";
 import { SESSION_MS, TICKET_SESSION_MS } from "@shared/openTime";
 import type { TimeWindow } from "@shared/window";
@@ -52,6 +53,8 @@ export interface Outcome {
   sentence: Sentence;
   answer: string;
   accuracy: number;
+  /** 原文の語ごとの判定。結果画面はこれを原文の上に重ねる。 */
+  graded: Grade;
   /** 実際に解いたモード。設定値ではなくこちらを表示の判断に使う。 */
   mode: Mode;
   /** 時間切れで終わったか。黙って握りつぶさず、正直に見せる。 */
@@ -88,10 +91,13 @@ export type Event =
   | { type: "OPEN_TIME_RESOLVED"; dateKey: string; minute: number }
   | { type: "TICK"; nowMs: number }
   | { type: "USE_TICKET" }
+  /** 設定を変える（保存される）。 */
   | { type: "MODE_SET"; mode: Mode }
+  /** 今回のセッションだけ変える（保存しない）。 */
+  | { type: "SESSION_MODE_SET"; mode: Mode }
   | { type: "CHIP_PLACE"; chipId: number }
   | { type: "CHIP_UNPLACE"; chipId: number }
-  | { type: "ANSWER"; answer: string; accuracy: number }
+  | { type: "ANSWER"; answer: string }
   | { type: "SESSION_EXPIRED" }
   | { type: "RESULT_DISMISSED" }
   | { type: "WINDOW_REQUESTED"; window: TimeWindow }
@@ -103,8 +109,8 @@ export type Event =
 export type Effect =
   | { k: "persist"; what: "settings" | "records" | "tickets" | "milestones" }
   | { k: "resolveOpenTime"; dateKey: string }
-  | { k: "norenOpen"; endsAtMs: number; totalMs: number }
-  | { k: "norenClose" }
+  | { k: "timerStart"; endsAtMs: number; totalMs: number }
+  | { k: "timerStop" }
   | { k: "speak"; text: string }
   | { k: "armTimer"; atMs: number };
 
@@ -178,6 +184,14 @@ function startSession(
     source,
   });
 
+  const effects: Effect[] = [
+    { k: "timerStart", endsAtMs, totalMs },
+    { k: "armTimer", atMs: endsAtMs },
+    { k: "persist", what: "records" },
+  ];
+  // 音読は「読み上げを聞いてから真似る」。開いた瞬間に一度だけ鳴らす
+  if (session.mode === "speak") effects.push({ k: "speak", text: sentence.en });
+
   return {
     state: {
       ...s,
@@ -186,22 +200,25 @@ function startSession(
       outcome: null,
       records: upsertRecord(s.records, record),
     },
-    effects: [
-      { k: "norenOpen", endsAtMs, totalMs },
-      { k: "armTimer", atMs: endsAtMs },
-      { k: "persist", what: "records" },
-    ],
+    effects,
   };
 }
 
-function finishSession(
-  s: AppState,
-  answer: string,
-  accuracy: number,
-  timedOut: boolean,
-): Step {
+/**
+ * 時間切れの時点での答え。
+ * 並べ替えは途中まで置いた並びをそのまま出す。
+ * 音読は聞き取れた時点で ANSWER が飛ぶので、ここに来た＝一言も届いていない。
+ */
+function timeoutAnswer(session: Session): string {
+  return session.mode === "speak" ? "" : toAnswer(session.arrange);
+}
+
+function finishSession(s: AppState, answer: string, timedOut: boolean): Step {
   const session = s.session;
   if (!session) return noop(s);
+
+  const graded = grade(session.sentence.en, answer);
+  const accuracy = graded.accuracy;
 
   const base =
     todayRecord(s) ??
@@ -225,12 +242,13 @@ function finishSession(
         sentence: session.sentence,
         answer,
         accuracy,
+        graded,
         mode: session.mode,
         timedOut,
       },
       records: upsertRecord(s.records, record),
     },
-    effects: [{ k: "norenClose" }, { k: "persist", what: "records" }],
+    effects: [{ k: "timerStop" }, { k: "persist", what: "records" }],
   };
 }
 
@@ -257,7 +275,7 @@ function onTick(s: AppState, nowMs: number): Step {
     };
     return {
       state,
-      effects: [{ k: "resolveOpenTime", dateKey: todayKey }, { k: "norenClose" }],
+      effects: [{ k: "resolveOpenTime", dateKey: todayKey }, { k: "timerStop" }],
     };
   }
 
@@ -265,7 +283,7 @@ function onTick(s: AppState, nowMs: number): Step {
 
   // 開店中の枠を過ぎた
   if (state.session && nowMs >= state.session.endsAtMs) {
-    return finishSession(state, toAnswer(state.session.arrange), 0, true);
+    return finishSession(state, timeoutAnswer(state.session), true);
   }
 
   // 定刻の開店。画面が閉店中のときだけ自動で開ける
@@ -321,13 +339,30 @@ export function reduce(s: AppState, e: Event): Step {
       };
     }
 
+    /*
+     * 開店中の切り替え。**設定は書き換えない。**
+     *
+     * マイクが塞がれた日に設定ごと並べ替えへ倒すと、翌日以降も音読が出てこなくなり、
+     * 利用者からは「音読モードが消えた」ようにしか見えない。
+     * その日の逃げ道と、普段どちらで解きたいかは別の話として扱う。
+     */
+    case "SESSION_MODE_SET": {
+      if (!s.session) return noop(s);
+      const session = { ...s.session, mode: e.mode };
+      const effects: Effect[] =
+        e.mode === "speak" ? [{ k: "speak", text: session.sentence.en }] : [];
+      return { state: { ...s, session }, effects };
+    }
+
     case "MODE_SET": {
       const settings = { ...s.settings, mode: e.mode };
       const session = s.session ? { ...s.session, mode: e.mode } : null;
-      return {
-        state: { ...s, settings, session },
-        effects: [{ k: "persist", what: "settings" }],
-      };
+      const effects: Effect[] = [{ k: "persist", what: "settings" }];
+      // 開店中に音読へ切り替えたなら、その場で読み上げる
+      if (session && e.mode === "speak") {
+        effects.push({ k: "speak", text: session.sentence.en });
+      }
+      return { state: { ...s, settings, session }, effects };
     }
 
     case "CHIP_PLACE": {
@@ -343,11 +378,11 @@ export function reduce(s: AppState, e: Event): Step {
     }
 
     case "ANSWER":
-      return finishSession(s, e.answer, e.accuracy, false);
+      return finishSession(s, e.answer, false);
 
     case "SESSION_EXPIRED": {
       if (!s.session) return noop(s);
-      return finishSession(s, toAnswer(s.session.arrange), 0, true);
+      return finishSession(s, timeoutAnswer(s.session), true);
     }
 
     case "RESULT_DISMISSED":

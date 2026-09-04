@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#15130F" />
+    <meta name="theme-color" content="#FFFFFF" />
     <meta name="description" content="1日5分だけ開く英語学習アプリ" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="のれん" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
     <title>のれん</title>
@@ -18,30 +18,28 @@
     <main id="app" data-screen="boot"></main>
 
     <!--
-      暖簾は画面モジュールの外に置く。開店中の画面が結果画面に差し替わっても
-      暖簾自身は残り、「上がる」動きが見える。
+      残り時間のバー。画面モジュールの外に置く。
+      開店中の画面が結果画面に差し替わってもバー自身は残るので、
+      「時間が尽きて終わった」のか「解き終えた」のかが動きで分かる。
     -->
-    <div class="noren-layer noren-layer--up" data-noren-slide hidden aria-hidden="true">
-      <div class="noren-bar"></div>
-      <!-- 3枚に割れているのが暖簾。切れ込みが無いとただの赤い矩形になる -->
-      <div class="noren-body" data-noren-body>
-        <span class="noren-panel"></span>
-        <span class="noren-panel"></span>
-        <span class="noren-panel"></span>
-        <span class="noren-yoke"></span>
+    <div class="timer" data-timer hidden aria-hidden="true">
+      <div class="timer__track">
+        <div class="timer__fill" data-timer-fill></div>
       </div>
     </div>
 
     <!-- 初回設定：時間帯を選ぶ -->
     <template id="tpl-onboarding">
       <div class="screen screen--pad stack">
-        <h1 class="title">のれん</h1>
-        <p class="quiet">
-          1日1回、選んだ時間帯のどこかで5分だけ開きます。<br />
-          何時に開くかは、その日にならないと分かりません。
-        </p>
+        <header class="hero">
+          <h1 class="hero__title">のれん</h1>
+          <p class="lead">
+            1日1回、選んだ時間帯のどこかで5分だけ開きます。<br />
+            何時に開くかは、その日にならないと分かりません。
+          </p>
+        </header>
 
-        <div class="field">
+        <section class="card">
           <label class="field__label" for="ob-start">開く時間帯</label>
           <div class="field__row">
             <select id="ob-start" class="select" data-start></select>
@@ -50,70 +48,81 @@
             <span class="field__sep">のあいだ</span>
           </div>
           <p class="field__hint" data-hint></p>
-        </div>
+        </section>
 
         <div class="grow"></div>
-        <button class="btn" data-next>これで始める</button>
-        <p class="quiet center">あとから変えられます（変更は翌日から反映）</p>
+
+        <footer class="footer">
+          <button class="btn btn--primary" data-next>これで始める</button>
+          <p class="quiet center">あとから変えられます（変更は翌日から反映）</p>
+        </footer>
       </div>
     </template>
 
     <!-- ホーム画面追加の案内。後回しにしない -->
     <template id="tpl-install">
       <div class="screen screen--pad stack">
-        <h1 class="title">ホーム画面に追加してください</h1>
-        <p class="quiet">
-          iPhone の Safari は、7日間アクセスがないサイトの保存データを消します。<br />
-          ホーム画面に追加したアプリはこの対象外です。<br />
-          <strong>記録を残すために、いま追加してください。</strong>
-        </p>
+        <header class="hero">
+          <h1 class="hero__title">ホーム画面に追加</h1>
+          <p class="lead">
+            iPhone の Safari は、7日間アクセスがないサイトの保存データを消します。<br />
+            ホーム画面に追加したアプリはこの対象外です。<br />
+            <strong>記録を残すために、いま追加してください。</strong>
+          </p>
+        </header>
 
-        <ol class="steps" data-ios hidden>
-          <li><span class="steps__icon" aria-hidden="true">􀈂</span> 下の「共有」ボタンを押す</li>
-          <li>メニューを下にたどる</li>
-          <li><strong>「ホーム画面に追加」</strong>を選ぶ</li>
-          <li>右上の「追加」を押す</li>
-        </ol>
+        <section class="card" data-ios hidden>
+          <ol class="steps">
+            <li>下の「共有」ボタンを押す</li>
+            <li>メニューを下にたどる</li>
+            <li><strong>「ホーム画面に追加」</strong>を選ぶ</li>
+            <li>右上の「追加」を押す</li>
+          </ol>
+        </section>
 
-        <ol class="steps" data-android hidden>
-          <li>右上のメニュー（︙）を押す</li>
-          <li><strong>「アプリをインストール」</strong>を選ぶ</li>
-        </ol>
+        <section class="card" data-android hidden>
+          <ol class="steps">
+            <li>右上のメニュー（︙）を押す</li>
+            <li><strong>「アプリをインストール」</strong>を選ぶ</li>
+          </ol>
+        </section>
 
-        <p class="quiet" data-desktop hidden>
-          この端末ではアドレスバーのインストールボタンから追加できます。
-        </p>
-
-        <button class="btn" data-install hidden>ホーム画面に追加</button>
+        <section class="card" data-desktop hidden>
+          <p class="quiet">
+            この端末ではアドレスバーのインストールボタンから追加できます。
+          </p>
+        </section>
 
         <div class="grow"></div>
-        <button class="btn btn--quiet" data-skip>あとで</button>
+
+        <footer class="footer">
+          <button class="btn btn--primary" data-install hidden>
+            ホーム画面に追加
+          </button>
+          <button class="btn" data-skip>あとで</button>
+        </footer>
       </div>
     </template>
 
     <!-- 閉店中。ボタンはほぼ無い -->
     <template id="tpl-closed">
       <div class="screen screen--closed">
-        <!--
-          暖簾を掛ける横木だけを残す。何も無い店先であって、空白ではない。
-          開店時に暖簾が下りてくる位置とぴったり同じにしてある。
-          ここに掛かるものがある、と分かることが翌日の開店を待たせる。
-        -->
-        <div class="crossbar crossbar--rail" aria-hidden="true"></div>
+        <header class="topbar">
+          <button class="topbar__btn" data-settings aria-label="設定">設定</button>
+        </header>
 
-        <button class="icon-btn icon-btn--tl" data-settings aria-label="設定">
-          設定
-        </button>
+        <section class="card card--center next">
+          <p class="next__label">次に開くのは</p>
+          <p class="next__time" data-time>--:--</p>
+          <p class="next__note" data-note></p>
+        </section>
 
-        <div class="closed__time">
-          <p class="closed__label">本日</p>
-          <p class="closed__clock" data-time>--:--</p>
-          <p class="closed__note quiet" data-note></p>
-        </div>
+        <section class="card">
+          <p class="card__title">今週</p>
+          <div class="week" data-week aria-label="今週の記録"></div>
+        </section>
 
         <div class="grow"></div>
-
-        <div class="week" data-week aria-label="今週の記録"></div>
 
         <div class="closed__foot">
           <button class="ticket" data-ticket>
@@ -129,37 +138,84 @@
       <div class="screen screen--open">
         <p class="countdown" data-countdown aria-live="off">5:00</p>
 
-        <p class="open__prompt" data-sentence></p>
+        <p class="prompt" data-sentence></p>
 
-        <div class="chips chips--placed" data-placed aria-label="並べた語"></div>
-        <div class="chips chips--pool" data-pool aria-label="語を選ぶ"></div>
+        <!-- モードB：並べ替え。どの端末でも必ず動く方 -->
+        <div class="open__mode" data-arrange hidden>
+          <!-- 音読から落ちてきたときだけ、その理由をここに出す -->
+          <p class="open__notice" data-notice role="status" hidden></p>
 
-        <div class="open__actions">
-          <button class="btn btn--quiet" data-undo>ひとつ戻す</button>
-          <button class="btn" data-submit disabled>できた</button>
+          <div class="chips chips--placed" data-placed aria-label="並べた語"></div>
+          <div class="chips chips--pool" data-pool aria-label="語を選ぶ"></div>
+
+          <div class="grow"></div>
+
+          <div class="footer">
+            <button class="btn btn--primary" data-submit disabled>できた</button>
+            <button class="btn btn--flat" data-undo>ひとつ戻す</button>
+          </div>
+        </div>
+
+        <!-- モードA：音読 -->
+        <div class="open__mode" data-speak hidden>
+          <p class="open__heard" data-heard aria-live="polite"></p>
+
+          <p class="quiet open__honest">
+            発音の良し悪しは判定していません。認識器が聞き取れたかどうかだけを見ています。
+          </p>
+
+          <div class="grow"></div>
+
+          <div class="footer">
+            <button class="btn btn--primary" data-mic>話す</button>
+            <div class="footer__row">
+              <button class="btn btn--flat" data-replay>もう一度聞く</button>
+              <button class="btn btn--flat" data-to-arrange>並べ替えにする</button>
+            </div>
+          </div>
         </div>
       </div>
     </template>
 
     <!-- 結果。3秒で閉店中に戻る -->
     <template id="tpl-result">
-      <div class="screen screen--pad result">
-        <p class="en" data-sentence></p>
-        <p class="result__score" data-score></p>
-        <p class="ja" data-ja></p>
-        <p class="quiet result__honest" data-honest hidden>
+      <div class="screen result">
+        <div class="grow"></div>
+
+        <p class="en result__sentence" data-sentence></p>
+
+        <!-- 自分が出した答え。原文より小さく、下に置く -->
+        <p class="result__answer" data-answer hidden>
+          <span class="result__answer-label" data-answer-label></span>
+          <span data-answer-text></span>
+        </p>
+
+        <p class="ja center" data-ja></p>
+
+        <p class="quiet center result__honest" data-honest hidden>
           発音の良し悪しは判定していません。認識器が聞き取れたかどうかだけを見ています。
         </p>
+
+        <div class="grow"></div>
+
+        <!-- 結果の帯。色は判定にだけ対応させる -->
+        <div class="band" data-band>
+          <p class="band__verdict" data-verdict></p>
+          <p class="band__score" data-score></p>
+        </div>
       </div>
     </template>
 
     <!-- 設定 -->
     <template id="tpl-settings">
-      <div class="screen screen--pad stack">
-        <button class="icon-btn icon-btn--tl" data-back aria-label="戻る">戻る</button>
+      <div class="screen stack">
+        <header class="topbar">
+          <button class="topbar__btn" data-back aria-label="戻る">戻る</button>
+        </header>
+
         <h1 class="title">設定</h1>
 
-        <div class="field">
+        <section class="card">
           <label class="field__label" for="st-start">開く時間帯</label>
           <div class="field__row">
             <select id="st-start" class="select" data-start></select>
@@ -168,17 +224,45 @@
             <span class="field__sep">のあいだ</span>
           </div>
           <p class="field__hint" data-hint></p>
-          <button class="btn btn--quiet" data-apply>変更する</button>
-          <p class="quiet" data-pending hidden></p>
-        </div>
+          <button class="btn" data-apply>変更する</button>
+          <p class="note" data-pending hidden></p>
+        </section>
 
-        <div class="field">
+        <section class="card">
+          <label class="field__label" for="st-mode">出題のしかた</label>
+          <div class="field__row">
+            <select id="st-mode" class="select" data-mode>
+              <option value="arrange">並べ替え</option>
+              <option value="speak">音読</option>
+            </select>
+          </div>
+          <p class="field__hint" data-mode-hint></p>
+        </section>
+
+        <section class="card">
+          <p class="field__label">記録の控え</p>
+          <div class="field__row field__row--split">
+            <button class="btn" data-export>書き出す</button>
+            <button class="btn" data-import>読み込む</button>
+          </div>
+          <input
+            class="visually-hidden"
+            type="file"
+            accept="application/json,.json"
+            data-import-file
+          />
+          <p class="field__hint" data-transfer-hint>
+            記録はこの端末の中だけにあります。書き出したファイルが唯一の控えです。
+          </p>
+        </section>
+
+        <section class="card">
           <p class="field__label">ホーム画面</p>
-          <button class="btn btn--quiet" data-install-guide>追加のしかた</button>
-          <p class="quiet">
+          <button class="btn" data-install-guide>追加のしかた</button>
+          <p class="field__hint">
             iPhone では、追加しないと7日で記録が消えることがあります。
           </p>
-        </div>
+        </section>
 
         <div class="grow"></div>
 

@@ -1,3 +1,11 @@
+/*
+ * 画面と部品。
+ *
+ * 押せるものには厚み（下辺だけ太い枠）を持たせ、押すと沈む。
+ * 「これは押せる」を影や色の濃さではなく形で示すと、白地でも迷わない。
+ * 色は判定にだけ使う（tokens.css の注記を参照）。
+ */
+
 .screen {
   display: flex;
   flex-direction: column;
@@ -6,16 +14,48 @@
 }
 
 .screen--pad {
-  padding-top: var(--space-4);
-}
-
-.title {
-  font-size: var(--step-2);
-  color: var(--paper);
+  padding-top: var(--space-3);
 }
 
 /* ---------------------------------------------------------------- 部品 */
 
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hero__title {
+  font-size: var(--step-2);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+}
+
+.card--center {
+  align-items: center;
+  text-align: center;
+}
+
+.card__title {
+  color: var(--text-dim);
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/*
+ * ボタン。下辺だけ太い枠が厚みになり、押すと沈む。
+ * 沈むぶんだけ上に余白を足すので、周りの要素は動かない。
+ */
 .btn {
   display: flex;
   align-items: center;
@@ -23,64 +63,95 @@
   width: 100%;
   min-height: var(--touch);
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  color: var(--paper);
+  background: var(--bg);
+  border: 2px solid var(--line-strong);
+  border-bottom-width: calc(2px + var(--lift));
+  border-radius: var(--r-md);
+  color: var(--text);
   font-size: var(--step-0);
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-align: center;
-  letter-spacing: 0.08em;
   transition:
-    border-color 200ms var(--ease),
-    color 200ms var(--ease);
+    background-color 120ms var(--ease),
+    border-color 120ms var(--ease),
+    color 120ms var(--ease);
 }
 
-.btn:hover:not(:disabled) {
-  border-color: var(--paper-dim);
+.btn:active:not(:disabled) {
+  margin-top: var(--lift);
+  border-bottom-width: 2px;
+}
+
+.btn--primary {
+  background: var(--primary);
+  border-color: var(--primary-deep);
+  color: #fff;
+}
+
+/* 主でない操作。厚みを持たせず、押せることは色で示す */
+.btn--flat {
+  min-height: var(--touch);
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: var(--step--1);
 }
 
 .btn:disabled {
-  color: var(--paper-faint);
+  background: var(--sunken);
   border-color: var(--line);
+  color: var(--text-faint);
   cursor: default;
 }
 
-/* 控えめだが、読めなくはしない */
-.btn--quiet {
-  border-color: var(--line);
-  color: var(--paper-dim);
-  font-size: var(--step-0);
+.btn--flat:disabled {
+  background: none;
+  border: none;
 }
 
-.icon-btn {
-  position: absolute;
-  top: max(var(--space-2), env(safe-area-inset-top));
+.topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--touch);
+}
+
+.topbar__btn {
   display: flex;
   align-items: center;
   min-height: var(--touch);
   padding: 0 var(--space-2);
-  color: var(--paper-dim);
+  margin-left: calc(var(--space-2) * -1);
+  color: var(--primary);
   font-size: var(--step-0);
-  letter-spacing: 0.12em;
+  font-weight: 700;
 }
 
-.icon-btn:hover {
-  color: var(--paper);
-}
-
-.icon-btn--tl {
-  left: calc(var(--space-3) - var(--space-2));
-}
-
-.field {
+/* 画面の一番下に置く操作。ここから下には何も置かない */
+.footer {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  padding-top: var(--space-3);
+}
+
+.footer__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.footer__row .btn {
+  flex: 1 1 0;
 }
 
 .field__label {
-  color: var(--paper-dim);
-  font-size: var(--step-0);
-  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .field__row {
@@ -90,233 +161,169 @@
   flex-wrap: wrap;
 }
 
+.field__row--split {
+  gap: var(--space-2);
+}
+
+.field__row--split .btn {
+  flex: 1 1 0;
+}
+
 .field__sep {
-  color: var(--paper-dim);
+  color: var(--text-dim);
   font-size: var(--step--1);
 }
 
 .field__hint {
-  color: var(--paper-faint);
+  color: var(--text-faint);
   font-size: var(--step--1);
   min-height: 1.6em;
 }
 
-/* 錆朱そのものは地に対して 3.06:1 で読めないので、文字にするときは明るくする */
 .field__hint--bad {
-  color: #d4705c;
+  color: var(--wrong);
 }
 
 .select {
   appearance: none;
   min-height: var(--touch);
-  padding: var(--space-1) var(--space-2);
-  background: var(--charcoal);
-  color: var(--paper);
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
+  padding: 0 var(--space-3) 0 var(--space-2);
+  background: var(--bg);
+  border: 2px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
   font: inherit;
-  font-size: var(--step-0);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .steps {
   margin: 0;
-  padding-left: 1.4em;
-  color: var(--paper-dim);
+  padding-left: 1.3em;
+  color: var(--text-dim);
   font-size: var(--step-0);
   line-height: 2;
 }
 
 .steps strong {
-  color: var(--paper);
-  font-weight: 400;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.credits {
+  padding-bottom: var(--space-2);
 }
 
 .credits a {
-  color: var(--paper-dim);
+  color: var(--primary);
 }
 
-/* ---------------------------------------------------------------- 横木と暖簾 */
-
-.crossbar {
-  flex: 0 0 auto;
-  height: 1px;
-  background: var(--line-strong);
-}
+/* ---------------------------------------------------------------- 残り時間 */
 
 /*
- * 閉店中に残る横木。暖簾（.noren-bar）と同じ位置・同じ太さにしてある。
- * ずれていると「ここに掛かる」という約束が伝わらない。
+ * 5分が減っていくことを示す唯一の面。数字は補助。
+ * 画面上端に固定し、画面が結果に差し替わっても残す。
  */
-.crossbar--rail {
+.timer {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(var(--line-strong), var(--line));
+  z-index: 5;
+  padding: max(var(--space-2), env(safe-area-inset-top)) var(--space-3)
+    var(--space-1);
+  background: var(--bg);
 }
 
-/* 画面モジュールの外に置く。画面が差し替わっても暖簾は残り、上がる動きが見える */
-.noren-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  transform: translateY(0);
-  transition: transform var(--noren-slide-ms) var(--ease);
-  pointer-events: none;
-}
-
-.noren-layer--up {
-  transform: translateY(-101%);
-}
-
-/* 暖簾を通す横木 */
-.noren-bar {
-  height: 3px;
-  background: linear-gradient(var(--paper-faint), var(--line-strong));
+.timer__track {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--sunken);
+  overflow: hidden;
 }
 
 /*
- * 布そのもの。
- *
- * 残り時間は clip-path で裾から詰める。scaleY だと布ごと押し潰されて
- * 切れ込みの比率まで変わってしまうので、丈だけが縮むこちらを使う。
- * clip-path も合成レイヤで動くので、フレーム毎の JS は要らない。
+ * scaleX で縮める。width を毎フレーム変えるとレイアウトが走るが、
+ * transform なら合成だけで済む。角丸はトラック側の overflow で作る。
  */
-.noren-body {
-  position: relative;
-  display: flex;
-  gap: 8px;
-  height: var(--noren-height);
-  min-height: 132px;
-  clip-path: inset(0 0 0 0);
-  will-change: clip-path;
-}
-
-/*
- * 3枚に割れた布。隙間がそのまま切れ込みになる。
- *
- * 裾に縫い返しの線は置かない。clip-path で裾から詰めるので、
- * 下端に置いた飾りは開店から数秒で切り落とされて二度と見えなくなる。
- * 代わりに、どこで切られても布に見えるよう縦の折り皺で陰影をつける。
- */
-.noren-panel {
-  position: relative;
-  flex: 1 1 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgb(0 0 0 / 0%) 0 14px,
-      rgb(0 0 0 / 5%) 14px 15px,
-      rgb(0 0 0 / 0%) 15px 29px
-    ),
-    linear-gradient(
-      180deg,
-      var(--rust-deep) 0%,
-      var(--rust) 7%,
-      var(--rust) 100%
-    );
-}
-
-/* 布の左右の端。輪郭が締まると「掛かっている」感じが出る */
-.noren-panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  box-shadow:
-    inset 2px 0 0 rgb(0 0 0 / 12%),
-    inset -2px 0 0 rgb(0 0 0 / 12%);
-}
-
-/* 切れ込みは裾からだけ。上のほうは縫い合わさっている */
-.noren-yoke {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: var(--noren-slit-top);
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgb(0 0 0 / 0%) 0 14px,
-      rgb(0 0 0 / 5%) 14px 15px,
-      rgb(0 0 0 / 0%) 15px 29px
-    ),
-    linear-gradient(
-      180deg,
-      var(--rust-deep) 0%,
-      var(--rust) 7%,
-      var(--rust) 100%
-    );
-}
-
-/* 竿に通した部分の陰。布が横木の向こうに回り込んで見える */
-.noren-yoke::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 9px;
-  background: linear-gradient(rgb(0 0 0 / 32%), rgb(0 0 0 / 0%));
+.timer__fill {
+  height: 100%;
+  background: var(--primary);
+  transform-origin: left center;
+  will-change: transform;
 }
 
 /* ---------------------------------------------------------------- 閉店中 */
 
 .screen--closed {
-  padding-top: var(--space-5);
+  gap: var(--space-3);
 }
 
-.closed__time {
-  flex: 0 0 auto;
-  text-align: center;
-  margin-bottom: var(--space-4);
-}
-
-.closed__label {
-  color: var(--paper-dim);
-  font-family: var(--serif);
+.next__label {
+  color: var(--text-dim);
   font-size: var(--step--1);
-  letter-spacing: 0.3em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.closed__clock {
-  font-family: var(--serif);
+.next__time {
   font-size: var(--step-3);
-  font-weight: 200;
-  letter-spacing: 0.12em;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--paper);
+  letter-spacing: 0.02em;
 }
 
-.closed__note {
-  margin-top: var(--space-1);
+.next__note {
+  color: var(--text-dim);
+  font-size: var(--step--1);
 }
 
+/* 今週。連続日数は数字として出さない */
 .week {
   display: flex;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) 0;
+  justify-content: space-between;
+  gap: var(--space-1);
 }
 
-.week__dot {
-  width: 8px;
-  height: 8px;
+.week__cell {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.week__day {
+  color: var(--text-faint);
+  font-size: var(--step--1);
+  line-height: 1;
+}
+
+/* これから来る日。まだ何も置かれていないことが分かればよい */
+.week__mark {
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: var(--line);
+  background: var(--sunken);
 }
 
-.week__dot--solved {
-  background: var(--paper-dim);
+.week__mark--solved {
+  background: var(--primary);
 }
 
-.week__dot--missed {
+/* 逃した日は空のまま描く。全部埋まっている必要はない */
+.week__mark--missed {
   background: transparent;
-  box-shadow: inset 0 0 0 1px var(--line-strong);
+  box-shadow: inset 0 0 0 2px var(--line-strong);
 }
 
-.week__dot--today {
-  box-shadow: inset 0 0 0 1px var(--paper-faint);
+.week__cell--today .week__day {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.week__cell--today .week__mark {
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .closed__foot {
@@ -331,70 +338,68 @@
   align-items: center;
   gap: var(--space-1);
   min-height: var(--touch);
-  padding: var(--space-1) var(--space-2);
-  color: var(--paper-faint);
+  padding: 0 var(--space-3);
+  border-radius: var(--r-md);
+  color: var(--text-faint);
   font-size: var(--step--1);
-  letter-spacing: 0.1em;
-  border: 1px solid transparent;
-  border-radius: 2px;
 }
 
 .ticket[data-usable="true"] {
-  color: var(--paper-dim);
-  border-color: var(--line-strong);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .ticket__count {
   font-variant-numeric: tabular-nums;
   font-size: var(--step-0);
+  font-weight: 700;
 }
 
 /* ---------------------------------------------------------------- 開店中 */
 
-/*
- * 縦に収める。長い英文だと語チップが増えるので、
- * あふれるのは語のプールだけにして「できた」は常に見える位置に留める。
- */
 .screen--open {
-  position: relative;
-  padding-top: calc(var(--noren-height) + var(--space-3));
+  padding-top: var(--space-3);
 }
 
-/*
- * 残り時間。暖簾が本体で数字は補助だが、
- * 見えない補助は補助ではないので、はっきり読める大きさにする。
- */
 .countdown {
-  position: fixed;
-  top: max(var(--space-2), env(safe-area-inset-top));
-  right: var(--space-3);
-  z-index: 3;
-  color: var(--paper);
-  font-family: var(--serif);
-  font-size: var(--step-2);
-  font-weight: 300;
+  flex: 0 0 auto;
+  align-self: flex-end;
+  color: var(--text-dim);
+  font-size: var(--step-0);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-  text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
+  letter-spacing: 0.04em;
 }
 
 /* 残り1分を切ったら少しだけ知らせる。急かさない */
 .countdown--last {
-  color: #f0d9c8;
+  color: var(--wrong);
 }
 
-/* 並べ替えでは英文が答えなので出さない。和訳を手がかりにする */
-.open__prompt {
+.prompt {
   flex: 0 0 auto;
-  margin-bottom: var(--space-3);
+  margin: var(--space-2) 0 var(--space-3);
   font-size: var(--step-1);
+  font-weight: 600;
   line-height: 1.7;
-  color: var(--paper);
 }
 
-.open__prompt--ja {
-  font-family: var(--serif);
-  font-weight: 300;
+/* 音読では英文そのものが問題。読める大きさで出す */
+.prompt--en {
+  font-size: var(--step-2);
+  line-height: 1.5;
+}
+
+/*
+ * 並べ替えと音読は同じ枠に入れ替わりで入る。
+ * 盤面はどちらのモードでも用意されているので、途中で切り替えても解き終えられる。
+ */
+.open__mode {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .chips {
@@ -402,22 +407,21 @@
   flex-wrap: wrap;
   align-content: flex-start;
   gap: var(--space-2);
-  padding: var(--space-2);
+  padding: var(--space-2) 0;
 }
 
 /* 語を置く場所。空でも「ここに置く」と分かる見た目にする */
 .chips--placed {
   flex: 0 0 auto;
   min-height: calc(var(--touch) + var(--space-2) * 2);
-  border-bottom: 1px solid var(--line-strong);
+  border-bottom: 2px solid var(--line);
 }
 
 .chips--placed:empty::before {
   content: "ここに並べる";
   align-self: center;
-  color: var(--paper-faint);
+  color: var(--text-faint);
   font-size: var(--step--1);
-  letter-spacing: 0.12em;
 }
 
 /* あふれるのはここだけ */
@@ -431,47 +435,132 @@
 
 .chip {
   min-height: var(--touch);
-  padding: var(--space-1) var(--space-3);
-  background: var(--charcoal);
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  color: var(--paper);
-  font-size: var(--step-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 2px solid var(--line-strong);
+  border-bottom-width: calc(2px + var(--lift));
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: var(--step-0);
+  font-weight: 600;
 }
 
-.chip:hover {
-  border-color: var(--paper-dim);
+.chip:active {
+  margin-top: var(--lift);
+  border-bottom-width: 2px;
 }
 
-.open__actions {
+/*
+ * 音読から並べ替えへ落ちた理由。黙って画面が変わると何が起きたか分からない。
+ * 判定の色ではないので、注意の色（朱）は使わない。
+ */
+.open__notice {
   flex: 0 0 auto;
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border-radius: var(--r-md);
+  color: var(--text-dim);
+  font-size: var(--step--1);
+  line-height: 1.6;
 }
 
-.open__actions .btn {
-  flex: 1 1 0;
+/* 聞き取りの状態。押しても何も起きないように見えるのが一番効く離脱理由になる */
+.open__heard {
+  min-height: 3.4em;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border-radius: var(--r-md);
+  color: var(--text-dim);
+  font-size: var(--step-0);
+  line-height: 1.7;
+}
+
+/*
+ * 正直に書く注記は、押す前に読める位置に置く。
+ * ボタンより下に置くと、画面の短い端末で画面外に落ちて誰も読まない。
+ */
+.open__honest {
+  margin-top: var(--space-2);
+}
+
+/* 聞いている間 */
+.btn--listening {
+  background: var(--primary-deep);
+  border-color: var(--primary-deep);
 }
 
 /* ---------------------------------------------------------------- 結果 */
 
 .result {
-  justify-content: center;
   gap: var(--space-3);
+}
+
+.result__sentence {
   text-align: center;
 }
 
-.result__score {
-  font-family: var(--serif);
-  font-size: var(--step-3);
-  font-weight: 200;
-  font-variant-numeric: tabular-nums;
-  color: var(--paper);
+/*
+ * 自分が出した答え。原文と並べて置くが、**原文より小さく**する。
+ * 同じ大きさにすると、どちらが正しいのか一瞬で分からなくなる。
+ */
+.result__answer {
+  color: var(--text-dim);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.result__answer-label {
+  margin-right: 0.5em;
+  color: var(--text-faint);
+  font-size: var(--step--1);
+  font-weight: 700;
 }
 
 .result__honest {
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/*
+ * 結果の帯。画面幅いっぱいに敷いて、判定を面で伝える。
+ * #app の余白を打ち消して端まで届かせる。
+ */
+.band {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 calc(var(--space-3) * -1) calc(max(var(--space-3), env(safe-area-inset-bottom)) * -1);
+  padding: var(--space-3) var(--space-3)
+    max(var(--space-3), env(safe-area-inset-bottom));
+  background: var(--sunken);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  text-align: center;
+  --band-ink: var(--text-dim);
+}
+
+.band--correct {
+  background: var(--correct-soft);
+  --band-ink: var(--correct);
+}
+
+.band--partial {
+  background: var(--primary-soft);
+  --band-ink: var(--primary);
+}
+
+.band__verdict {
+  color: var(--band-ink);
+  font-size: var(--step-1);
+  font-weight: 700;
+}
+
+.band__score {
+  color: var(--band-ink);
+  font-size: var(--step-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 /* 一致 / 誤り / 欠落。色だけに頼らず下線の種類でも区別する */
@@ -485,30 +574,31 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -0.18em;
-  height: 2px;
+  bottom: -0.16em;
+  height: 3px;
+  border-radius: 2px;
 }
 
 .tok--match {
-  color: var(--paper);
+  color: var(--text);
 }
 
 .tok--match::after {
-  background: var(--bamboo);
+  background: var(--correct);
 }
 
 .tok--wrong {
-  color: var(--paper);
+  color: var(--wrong);
 }
 
 .tok--wrong::after {
   background: repeating-linear-gradient(
     90deg,
-    var(--rust) 0 3px,
-    transparent 3px 6px
+    var(--wrong) 0 4px,
+    transparent 4px 8px
   );
 }
 
 .tok--miss {
-  color: var(--paper-faint);
+  color: var(--text-faint);
 }

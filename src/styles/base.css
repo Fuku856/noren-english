@@ -12,13 +12,13 @@ body {
 }
 
 html {
-  background: var(--ink);
-  color-scheme: dark;
+  background: var(--bg);
+  color-scheme: light;
 }
 
 body {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--bg);
+  color: var(--text);
   font-family: var(--sans);
   font-size: var(--step-0);
   line-height: 1.7;
@@ -34,7 +34,6 @@ body {
   padding: max(var(--space-3), env(safe-area-inset-top)) var(--space-3)
     max(var(--space-3), env(safe-area-inset-bottom));
   /*
-   * 横は切る（暖簾のスライドで横スクロールが出ないように）。
    * 縦は逃がす。ここを hidden にすると、画面が短い端末で
    * 「できた」ボタンが折り返しの下に隠れて二度と押せなくなる。
    */
@@ -45,10 +44,10 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--serif);
-  font-weight: 300;
-  letter-spacing: 0.08em;
   margin: 0;
+  font-size: var(--step-1);
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 p {
@@ -65,26 +64,57 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-:focus-visible {
-  outline: 2px solid var(--paper-dim);
-  outline-offset: 3px;
+/*
+ * hidden は必ず効かせる。display を持つ要素（.open__mode など）に付けたとき、
+ * ブラウザ既定の [hidden] は作者スタイルに負けて消えてくれない。
+ */
+[hidden] {
+  display: none !important;
 }
 
-/* 英文は読みやすさ優先でサンセリフ。明朝にしない */
-.en {
-  font-family: var(--sans);
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.title {
   font-size: var(--step-2);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* 英文。読みやすさ優先 */
+.en {
+  font-size: var(--step-2);
+  font-weight: 600;
   line-height: 1.5;
   letter-spacing: 0.01em;
 }
 
 .ja {
-  color: var(--paper-dim);
+  color: var(--text-dim);
   font-size: var(--step-0);
 }
 
+.lead {
+  color: var(--text-dim);
+  font-size: var(--step-0);
+  line-height: 1.8;
+}
+
+.lead strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .quiet {
-  color: var(--paper-faint);
+  color: var(--text-faint);
+  font-size: var(--step--1);
+  line-height: 1.6;
+}
+
+.note {
+  color: var(--text-dim);
   font-size: var(--step--1);
   line-height: 1.6;
 }
@@ -117,20 +147,20 @@ button {
 /* 記録が端末に残らない環境で出す1行 */
 .ephemeral-banner {
   flex: 0 0 auto;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-2);
   margin-bottom: var(--space-2);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  color: var(--paper-dim);
+  background: var(--wrong-soft);
+  border-radius: var(--r-sm);
+  color: var(--text-dim);
   font-size: var(--step--1);
   text-align: center;
 }
 
 /*
  * 動きを嫌う設定では transition を止める。
- * 暖簾はこの指定で CSS の連続アニメーションが効かなくなるが、
- * noren.ts が30秒ごとの段階更新に切り替えるので「減っていること」は伝わる。
- * 暖簾は装飾ではなく情報なので、縮むこと自体は残す。
+ * 残り時間のバーはこの指定で連続アニメーションが効かなくなるが、
+ * timerBar.ts が段階更新に切り替えるので「減っていること」は伝わる。
+ * バーは装飾ではなく情報なので、縮むこと自体は残す。
  */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -154,16 +184,15 @@ button {
   align-items: center;
   gap: 4px;
   padding: 4px 6px;
-  background: #000;
-  border-top: 1px solid var(--line);
+  background: #1f2430;
   font-size: 11px;
-  color: var(--paper-dim);
+  color: #cfd3dc;
 }
 
 .devpanel button {
   padding: 2px 6px;
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  color: var(--paper-dim);
+  border: 1px solid #4a505f;
+  border-radius: 4px;
+  color: #cfd3dc;
   font-size: 11px;
 }

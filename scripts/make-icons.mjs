@@ -3,9 +3,8 @@
  *
  *   node scripts/make-icons.mjs
  *
- * 図案は暖簾そのもの。横木から錆朱の布が下がり、縦のスリットが入っている。
- * 提灯も徳利も桜も使わない。居酒屋の看板にしないこと。
- * 暖簾に屋号は入れない（文字を入れた瞬間に看板になる）。
+ * 図案は語のタイルが3行。アプリの中で実際に触るものと同じ形にしてある。
+ * キャラクターも記号的モチーフも置かない。他の語学アプリの図案を真似ない。
  *
  * 依存を増やさないために PNG は自前で書く（zlib は Node 標準）。
  */
@@ -15,9 +14,8 @@ import { fileURLToPath } from "node:url";
 
 const OUT = fileURLToPath(new URL("../public/icons/", import.meta.url));
 
-const INK = [0x15, 0x13, 0x0f];
-const RUST = [0xa8, 0x41, 0x2f];
-const BAR = [0x9a, 0x95, 0x8a];
+const PRIMARY = [0x2f, 0x5b, 0xd8]; // 藍。tokens.css の --primary
+const WHITE = [0xff, 0xff, 0xff];
 
 function crc32(buf) {
   let c = ~0;
@@ -66,52 +64,57 @@ function png(size, pixel) {
   ]);
 }
 
+/** 角丸の矩形に入っているか。 */
+function inRounded(x, y, x0, y0, x1, y1, r) {
+  if (x < x0 || x >= x1 || y < y0 || y >= y1) return false;
+  const cx = Math.min(Math.max(x, x0 + r), x1 - r);
+  const cy = Math.min(Math.max(y, y0 + r), y1 - r);
+  const dx = x - cx;
+  const dy = y - cy;
+  return dx * dx + dy * dy <= r * r;
+}
+
 /**
  * @param size    画像の一辺
- * @param inset   図案を収める割合。maskable は 0.8（角が切られても欠けないように）
+ * @param inset   図案を収める割合。maskable は小さめ（角が切られても欠けないように）
  */
-function noren(size, inset) {
+function mark(size, inset) {
   const pad = (size * (1 - inset)) / 2;
   const w = size * inset;
 
-  const barY = pad + w * 0.16;
-  const barH = Math.max(2, Math.round(w * 0.045));
-  const clothTop = barY + barH;
-  const clothH = w * 0.62;
-  const left = pad;
-  const right = pad + w;
+  const barH = w * 0.19;
+  const gap = w * 0.13;
+  const widths = [1, 0.62, 0.85];
+  const total = barH * 3 + gap * 2;
+  const top = pad + (w - total) / 2;
+  const r = barH / 2;
 
-  // 3枚に割る。スリットは布の下半分だけに入る（暖簾の作り）
-  const slitW = Math.max(2, Math.round(w * 0.022));
-  const panel = w / 3;
-  const slitTop = clothTop + clothH * 0.35;
+  const bars = widths.map((ratio, i) => ({
+    x0: pad,
+    x1: pad + w * ratio,
+    y0: top + i * (barH + gap),
+    y1: top + i * (barH + gap) + barH,
+  }));
 
   return (x, y) => {
-    if (x >= left && x < right && y >= barY && y < barY + barH) return BAR;
-
-    if (x >= left && x < right && y >= clothTop && y < clothTop + clothH) {
-      if (y >= slitTop) {
-        for (const s of [left + panel, left + panel * 2]) {
-          if (x >= s - slitW / 2 && x < s + slitW / 2) return INK;
-        }
-      }
-      return RUST;
+    for (const b of bars) {
+      if (inRounded(x, y, b.x0, b.y0, b.x1, b.y1, r)) return WHITE;
     }
-    return INK;
+    return PRIMARY;
   };
 }
 
 mkdirSync(OUT, { recursive: true });
 
 const files = [
-  ["icon-192.png", 192, 0.86],
-  ["icon-512.png", 512, 0.86],
-  ["maskable-512.png", 512, 0.62], // マスクで角が落ちても図案が欠けない
-  ["apple-touch-icon-180.png", 180, 0.86],
+  ["icon-192.png", 192, 0.7],
+  ["icon-512.png", 512, 0.7],
+  ["maskable-512.png", 512, 0.52], // マスクで角が落ちても図案が欠けない
+  ["apple-touch-icon-180.png", 180, 0.7],
 ];
 
 for (const [name, size, inset] of files) {
-  const buf = png(size, noren(size, inset));
+  const buf = png(size, mark(size, inset));
   writeFileSync(OUT + name, buf);
   console.log(`${name.padEnd(28)} ${size}x${size}  ${(buf.length / 1024).toFixed(1)} KB`);
 }
