@@ -6,6 +6,7 @@
  */
 
 import { dateKeyOf } from "@shared/dateKey";
+import { maintenanceInfo } from "@shared/maintenance";
 import { SESSION_MS } from "@shared/openTime";
 import { getOffset, now, resetClock, setNow } from "@/app/clock";
 import { clearAll } from "@/data/storage";
@@ -21,6 +22,7 @@ export function installDevPanel(store: Store): void {
     <button data-stt>マイク: 実機</button>
     <button data-expire>時間切れ</button>
     <button data-nextday>+1日</button>
+    <button data-maint>メンテ表示</button>
     <button data-reset>実時刻に戻す</button>
     <button data-wipe>記録を消す</button>
     <span data-info></span>
@@ -80,6 +82,22 @@ export function installDevPanel(store: Store): void {
 
   host.querySelector("[data-nextday]")!.addEventListener("click", () => {
     jump(store.getState().nowMs + 86_400_000);
+  });
+
+  /*
+   * メンテナンス画面。
+   *
+   * dev サーバには Pages Functions が無く /api/maintenance は 404 なので、
+   * ここを通さないとこの画面を一度も見られない。
+   * 追記メッセージ（MAINTENANCE_MESSAGE）の有る形で出す。
+   */
+  host.querySelector("[data-maint]")!.addEventListener("click", () => {
+    store.dispatch({
+      type: "MAINTENANCE_SET",
+      info: maintenanceInfo(
+        "開発用パネルから出した表示です。\n（MAINTENANCE_MESSAGE の差し込み位置）",
+      ),
+    });
   });
 
   host.querySelector("[data-reset]")!.addEventListener("click", () => {

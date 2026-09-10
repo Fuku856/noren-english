@@ -28,6 +28,7 @@ export function initialState(nowMs: number, todayKey: string): AppState {
     session: null,
     outcome: null,
     ephemeral: false,
+    maintenance: null,
   };
 }
 

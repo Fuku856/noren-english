@@ -13,6 +13,7 @@
 import { grade, type Grade } from "@shared/align";
 import { addDays, dateKeyOf, formatMinute, jstMinuteToEpoch } from "@shared/dateKey";
 import { SESSION_MS, TICKET_SESSION_MS } from "@shared/openTime";
+import type { MaintenanceInfo } from "@shared/maintenance";
 import type { TimeWindow } from "@shared/window";
 import type { ArrangeState } from "@/domain/arrange";
 import { createArrange, place, toAnswer, unplace } from "@/domain/arrange";
@@ -38,7 +39,8 @@ export type Screen =
   | "closed"
   | "open"
   | "result"
-  | "settings";
+  | "settings"
+  | "maintenance";
 
 export interface Session {
   source: SessionSource;
@@ -84,6 +86,9 @@ export interface AppState {
 
   /** 記録が端末に残らない環境か。 */
   ephemeral: boolean;
+
+  /** メンテナンス中ならその表示内容。通常営業なら null。 */
+  maintenance: MaintenanceInfo | null;
 }
 
 export type Event =
@@ -104,7 +109,9 @@ export type Event =
   | { type: "ONBOARDING_DONE"; window: TimeWindow }
   | { type: "RESOLVE_OPEN_TIME" }
   | { type: "INSTALL_ACKNOWLEDGED" }
-  | { type: "NAVIGATE"; screen: Screen };
+  | { type: "NAVIGATE"; screen: Screen }
+  /** メンテナンス中だと分かった。以降どの画面にも戻さない。 */
+  | { type: "MAINTENANCE_SET"; info: MaintenanceInfo };
 
 export type Effect =
   | { k: "persist"; what: "settings" | "records" | "tickets" | "milestones" }
@@ -259,6 +266,9 @@ function finishSession(s: AppState, answer: string, timedOut: boolean): Step {
  * 「実はもう時間切れだった」を検出できないと5分が伸びる。だから毎ティック見る。
  */
 function onTick(s: AppState, nowMs: number): Step {
+  // メンテナンス中は時計だけ進める。日付が変わっても開店させない
+  if (s.screen === "maintenance") return noop({ ...s, nowMs });
+
   const todayKey = dateKeyOf(nowMs);
   let state: AppState = { ...s, nowMs };
 
@@ -424,5 +434,23 @@ export function reduce(s: AppState, e: Event): Step {
 
     case "NAVIGATE":
       return noop({ ...s, screen: e.screen });
+
+    /*
+     * メンテナンス中。開いていたセッションはその場で捨てる。
+     *
+     * 解きかけを握ったまま閉じると、戻ってきたときに
+     * 残り時間だけが過ぎた問題が復活してしまう。
+     */
+    case "MAINTENANCE_SET":
+      return {
+        state: {
+          ...s,
+          screen: "maintenance",
+          maintenance: e.info,
+          session: null,
+          outcome: null,
+        },
+        effects: [{ k: "timerStop" }],
+      };
   }
 }

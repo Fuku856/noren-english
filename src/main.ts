@@ -14,6 +14,7 @@ import { initClock, now, startTicker } from "./app/clock";
 import { createEffectRunner } from "./app/effects";
 import { createStore, initialState } from "./app/store";
 import { loadRecords } from "./data/records";
+import { fetchMaintenance } from "./data/maintenance";
 import { loadMilestonesSafe } from "./data/milestones";
 import { loadOrCreateSalt, loadSettings, promotePending, saveSettings } from "./data/settings";
 import { initStorage, isPersistent } from "./data/storage";
@@ -26,6 +27,7 @@ import { createTimerBar } from "./ui/components/timerBar";
 import { createRenderer } from "./ui/render";
 import { closedScreen } from "./ui/screens/closed";
 import { installScreen } from "./ui/screens/install";
+import { maintenanceScreen } from "./ui/screens/maintenance";
 import { onboardingScreen } from "./ui/screens/onboarding";
 import { openScreen } from "./ui/screens/open";
 import { resultScreen } from "./ui/screens/result";
@@ -67,6 +69,7 @@ function boot(): void {
       open: openScreen,
       result: resultScreen,
       settings: settingsScreen,
+      maintenance: maintenanceScreen,
     },
   });
 
@@ -105,6 +108,17 @@ function boot(): void {
     store.dispatch({ type: "RESOLVE_OPEN_TIME" });
     store.dispatch({ type: "TICK", nowMs: now() });
   }
+
+  /*
+   * メンテナンス中かどうか。
+   *
+   * Service Worker が index.html をプリキャッシュするので、サーバ側で閉じても
+   * インストール済みの利用者にはアプリがそのまま出る。ここで閉じるのがその経路。
+   * 取れなければ通常営業のまま（圏外で「メンテナンス中」を出さない）。
+   */
+  void fetchMaintenance().then((info) => {
+    if (info) store.dispatch({ type: "MAINTENANCE_SET", info });
+  });
 
   // 例文は画面より後で構わない。開店の瞬間までに間に合えばよい
   void loadSentences()

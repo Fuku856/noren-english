@@ -602,3 +602,71 @@
 .tok--miss {
   color: var(--text-faint);
 }
+
+/* ---------------------------------------------------------------- メンテナンス
+ *
+ * ここだけ のれんのトークンを使わない。営業していないことを伝えるだけの面で、
+ * 藍・青緑・朱は合図として取っておきたいので一切使わず、灰と白だけで組む。
+ *
+ * ⚠ 同じ見た目を functions/_middleware.ts がインラインCSSで持っている。
+ *   片方だけ変えないこと。
+ */
+
+/* #app の余白と白地をここだけ打ち消す。地は単色の薄い水色で端まで塗る */
+#app[data-screen="maintenance"] {
+  padding: 0;
+  background: #e6f0f8;
+}
+
+.maint {
+  /* #app が flex column の min-height: 100dvh。伸ばして中央に置く */
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1.5rem
+    max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.maint__card {
+  width: 100%;
+  max-width: 26rem;
+  padding: 2.5rem 2rem;
+  border: 1px solid #e3e5e9;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(16, 18, 24, 0.04),
+    0 8px 24px rgba(16, 18, 24, 0.06);
+  text-align: center;
+}
+
+.maint__title {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1b1f27;
+}
+
+.maint__lines {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  /* 必ず出る本文。見出しと同じ黒で読ませる */
+  color: #1b1f27;
+  /* 本文は1つの段落に改行込みで入れてある */
+  white-space: pre-line;
+  /* 中央揃えの日本語が語の途中で折り返すと読みにくい。対応しない環境では無視される */
+  word-break: auto-phrase;
+}
+
+.maint__message {
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid #eceef2;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: #5b6273;
+  white-space: pre-line;
+  word-break: auto-phrase;
+}

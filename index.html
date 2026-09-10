@@ -284,6 +284,20 @@
       </div>
     </template>
 
+    <!--
+      メンテナンス中。のれんの意匠は使わない。
+      サーバ側の1枚（functions/_middleware.ts）と同じ見た目にしてある。
+    -->
+    <template id="tpl-maintenance">
+      <div class="maint">
+        <div class="maint__card">
+          <h1 class="maint__title" data-title></h1>
+          <p class="maint__lines" data-lines></p>
+          <p class="maint__message" data-message hidden></p>
+        </div>
+      </div>
+    </template>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

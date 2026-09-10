@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { dateKeyOf, jstMinuteToEpoch } from "@shared/dateKey";
+import { maintenanceInfo } from "@shared/maintenance";
 import { SESSION_MS, TICKET_SESSION_MS } from "@shared/openTime";
 import { normalizeDb, pickSentence, type SentenceDb } from "@/domain/sentences";
 import { toAnswer } from "@/domain/arrange";
@@ -429,5 +430,59 @@ describe("開店中のモード切り替え", () => {
     const after = run(closed, [{ type: "SESSION_MODE_SET", mode: "speak" }]).state;
     expect(after).toBe(closed);
     expect(after.settings.mode).toBe("arrange");
+  });
+});
+
+
+describe("メンテナンス", () => {
+  it("開いている途中でも閉じる。解きかけは捨てる", () => {
+    const opened = run(boot(jst("2026-08-18T21:00:00")), [
+      { type: "TICK", nowMs: OPEN_AT },
+    ]).state;
+    expect(opened.session).not.toBeNull();
+
+    const { state, effects } = run(opened, [
+      { type: "MAINTENANCE_SET", info: maintenanceInfo(undefined) },
+    ]);
+    expect(state.screen).toBe("maintenance");
+    expect(state.session).toBeNull();
+    expect(state.outcome).toBeNull();
+    expect(effects.some((e) => e.k === "timerStop")).toBe(true);
+  });
+
+  /*
+   * ここが肝。閉じている最中に開店時刻が来ても開けてはいけない。
+   * 開店の判定は TICK が持っているので、ティックのたびに引き戻されないか見る。
+   */
+  it("閉じたあとは開店時刻が来ても開かない", () => {
+    const closed = run(boot(jst("2026-08-18T21:00:00")), [
+      { type: "MAINTENANCE_SET", info: maintenanceInfo(undefined) },
+    ]).state;
+
+    const after = run(closed, [
+      { type: "TICK", nowMs: OPEN_AT },
+      { type: "TICK", nowMs: OPEN_AT + 1000 },
+    ]).state;
+    expect(after.screen).toBe("maintenance");
+    expect(after.session).toBeNull();
+  });
+
+  it("日付が変わっても閉じたまま。時計だけ進む", () => {
+    const closed = run(boot(jst("2026-08-18T21:00:00")), [
+      { type: "MAINTENANCE_SET", info: maintenanceInfo(undefined) },
+    ]).state;
+
+    const nextDay = jst("2026-08-19T10:00:00");
+    const after = run(closed, [{ type: "TICK", nowMs: nextDay }]).state;
+    expect(after.screen).toBe("maintenance");
+    expect(after.nowMs).toBe(nextDay);
+    expect(after.todayKey).toBe(DAY);
+  });
+
+  it("環境変数の追記はそのまま状態に載る", () => {
+    const after = run(boot(jst("2026-08-18T20:00:00")), [
+      { type: "MAINTENANCE_SET", info: maintenanceInfo("  20:00 まで  ") },
+    ]).state;
+    expect(after.maintenance?.message).toBe("20:00 まで");
   });
 });
