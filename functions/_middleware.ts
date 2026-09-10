@@ -11,7 +11,11 @@
  *   そちらは /api/maintenance を見るアプリ側のフラグ（src/data/maintenance.ts）で閉じる。
  */
 
-import { isMaintenanceOn, maintenanceInfo } from "../shared/maintenance";
+import {
+  MAINTENANCE_PASS_THROUGH,
+  isMaintenanceOn,
+  maintenanceInfo,
+} from "../shared/maintenance";
 import { maintenancePage } from "../shared/maintenancePage";
 
 interface Env {
@@ -19,11 +23,8 @@ interface Env {
   MAINTENANCE_MESSAGE?: string;
 }
 
-/**
- * メンテナンス中でも通すパス。
- * アプリ側のフラグ取得はここを塞いだ時点で成立しなくなる。
- */
-const PASS_THROUGH = new Set(["/api/maintenance"]);
+/** 中身は shared/maintenance.ts。ページ側が読む物と必ず一致させるため向こうに置いてある。 */
+const PASS_THROUGH = new Set(MAINTENANCE_PASS_THROUGH);
 
 export const onRequest: PagesFunction<Env> = (ctx) => {
   if (!isMaintenanceOn(ctx.env.MAINTENANCE_MODE)) return ctx.next();

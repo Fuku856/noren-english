@@ -15,6 +15,23 @@ export const MAINTENANCE_LINES = [
   "ご不便をおかけしますが、しばらくお待ちください。",
 ] as const;
 
+/**
+ * あの1枚に載せる飾り。**ここに書いた1本だけ**が 503 を素通しできる。
+ * index.html の tpl-maintenance も同じパスを指している。
+ */
+export const MAINTENANCE_ART_SRC = "/maintenance.webp";
+
+/**
+ * メンテナンス中でも 503 にせず通すパス。functions/_middleware.ts が使う。
+ *
+ * 増やすなら、取れなかったときにページが読めなくなる物でないことを確かめてから。
+ * /api/maintenance を塞ぐと、インストール済みの端末を閉じる経路が消える。
+ */
+export const MAINTENANCE_PASS_THROUGH: readonly string[] = [
+  "/api/maintenance",
+  MAINTENANCE_ART_SRC,
+];
+
 export interface MaintenanceInfo {
   title: string;
   lines: readonly string[];

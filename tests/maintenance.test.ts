@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import { readFileSync } from "node:fs";
+
 import {
+  MAINTENANCE_ART_SRC,
   MAINTENANCE_LINES,
+  MAINTENANCE_PASS_THROUGH,
   MAINTENANCE_TITLE,
   isMaintenanceOn,
   maintenanceInfo,
@@ -66,9 +70,39 @@ describe("maintenancePage", () => {
     expect(html).toContain("&amp; more");
   });
 
-  it("外部のアセットを読まない（全パスが 503 なので取りに行かせない）", () => {
+  it("スタイルシートを読みに行かない（全パスが 503）", () => {
+    expect(maintenancePage(maintenanceInfo("お知らせ"))).not.toContain("<link");
+  });
+
+  /*
+   * メンテナンス中は全パスが 503。ここから読みに行くものが
+   * PASS_THROUGH に無ければ、その参照は必ず失敗する。
+   * 片方だけ足したときにここで止める。
+   */
+  it("読みに行くのは PASS_THROUGH に入っているパスだけ", () => {
     const html = maintenancePage(maintenanceInfo("お知らせ"));
-    expect(html).not.toContain("<link");
-    expect(html).not.toContain("src=");
+    const srcs = [...html.matchAll(/\ssrc="([^"]*)"/g)].map((m) => m[1]);
+
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of srcs) {
+      expect(MAINTENANCE_PASS_THROUGH).toContain(src);
+    }
+  });
+});
+
+/*
+ * アプリ側の1枚（index.html の tpl-maintenance）とサーバ側の1枚は
+ * 同じ見た目でなければならない。飾りの差し替えでパスが片方だけ変わるのを止める。
+ */
+describe("アプリ側のテンプレート", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  it("飾りはサーバ側と同じパスを指している", () => {
+    expect(html).toContain(`src="${MAINTENANCE_ART_SRC}"`);
+  });
+
+  it("飾りは読み上げに足さない（alt は空）", () => {
+    const tag = html.slice(html.indexOf("maint__art"));
+    expect(tag.slice(0, tag.indexOf(">"))).toContain('alt=""');
   });
 });

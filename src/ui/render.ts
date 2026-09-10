@@ -34,13 +34,21 @@ export function createRenderer(
   let banner: HTMLElement | null = null;
 
   const syncBanner = (s: AppState) => {
-    if (s.ephemeral && !banner) {
+    /*
+     * メンテナンス画面にだけは出さない。
+     *
+     * あの1枚は のれん の意匠を全部外して「営業していない」だけを伝える。
+     * 記録が残らないという別の話を朱の帯で載せても行き場がないうえ、
+     * #app の padding を 0 にしてある画面なので帯が縁まで届いて壊れて見える。
+     */
+    const wanted = s.ephemeral && s.screen !== "maintenance";
+    if (wanted && !banner) {
       banner = document.createElement("p");
       banner.className = "ephemeral-banner";
       banner.textContent =
         "この環境では記録が残りません。ブラウザの設定をご確認ください。";
       root.prepend(banner);
-    } else if (!s.ephemeral && banner) {
+    } else if (!wanted && banner) {
       banner.remove();
       banner = null;
     }

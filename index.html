@@ -291,6 +291,18 @@
     <template id="tpl-maintenance">
       <div class="maint">
         <div class="maint__card">
+          <!--
+            飾り。読み上げには何も足さないので alt は空。
+            width/height を書いて場所を先に空けておく（この画面は縦中央揃えなので、
+            後から画像が入ると札ごと跳ねる）。
+          -->
+          <img
+            class="maint__art"
+            src="/maintenance.webp"
+            alt=""
+            width="640"
+            height="520"
+          />
           <h1 class="maint__title" data-title></h1>
           <p class="maint__lines" data-lines></p>
           <p class="maint__message" data-message hidden></p>

@@ -41,7 +41,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,woff2,png,json}"],
+        // webp はメンテナンス画面の飾り1枚だけ。インストール済みの端末でも
+        // オフラインであの1枚が完成するよう、プリキャッシュに含める
+        globPatterns: ["**/*.{js,css,html,woff2,png,webp,json}"],
         // 例文JSONはオフラインでも確実に引けるようプリキャッシュ対象に含める
         navigateFallback: "/index.html",
       },
