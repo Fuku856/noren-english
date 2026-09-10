@@ -485,4 +485,80 @@ describe("メンテナンス", () => {
     ]).state;
     expect(after.maintenance?.message).toBe("20:00 まで");
   });
+
+  /*
+   * 判定は非同期で、返るまでに最大3秒かかる。**その間に開けてはいけない。**
+   * 開けてしまうと、閉じている最中に今日の1回が消え、記録まで残る。
+   */
+  describe("判定待ちのあいだ", () => {
+    const waiting = (atMs: number): AppState =>
+      run(boot(atMs), [
+        { type: "HYDRATED", patch: { awaitingMaintenance: true } },
+      ]).state;
+
+    it("定刻が来ても開かない", () => {
+      const { state, effects } = run(waiting(jst("2026-08-18T21:00:00")), [
+        { type: "TICK", nowMs: OPEN_AT },
+        { type: "TICK", nowMs: OPEN_AT + 1000 },
+      ]);
+      expect(state.screen).toBe("closed");
+      expect(state.session).toBeNull();
+      // 記録も書かれていないこと。ここが漏れると今日の1回が消える
+      expect(state.records).toEqual([]);
+      expect(effects).toEqual([]);
+    });
+
+    it("チケットも使わせない", () => {
+      const missed = waiting(jst("2026-08-18T23:00:00"));
+      expect(canUseTicket(missed)).toBe(false);
+    });
+
+    it("判定が付けば普通に開く", () => {
+      const opened = run(waiting(jst("2026-08-18T21:00:00")), [
+        { type: "HYDRATED", patch: { awaitingMaintenance: false } },
+        { type: "TICK", nowMs: OPEN_AT },
+      ]).state;
+      expect(opened.screen).toBe("open");
+      expect(opened.session).not.toBeNull();
+    });
+  });
+
+  describe("明けたとき", () => {
+    const closed = () =>
+      run(boot(jst("2026-08-18T20:00:00")), [
+        { type: "MAINTENANCE_SET", info: maintenanceInfo("お知らせ") },
+      ]).state;
+
+    it("旗を解いて指定の画面へ戻る", () => {
+      const after = run(closed(), [
+        { type: "MAINTENANCE_CLEARED", screen: "closed" },
+      ]).state;
+      expect(after.screen).toBe("closed");
+      expect(after.maintenance).toBeNull();
+    });
+
+    it("初回設定が済んでいなければオンボーディングへ戻る", () => {
+      const after = run(closed(), [
+        { type: "MAINTENANCE_CLEARED", screen: "onboarding" },
+      ]).state;
+      expect(after.screen).toBe("onboarding");
+    });
+
+    /*
+     * 通常営業のまま起動した端末にも MAINTENANCE_CLEARED は飛ぶ。
+     * そこで画面を書き換えると、解いている最中に閉店中へ飛ばされる。
+     */
+    it("メンテナンス中でなければ何もしない", () => {
+      const opened = run(boot(jst("2026-08-18T21:00:00")), [
+        { type: "TICK", nowMs: OPEN_AT },
+      ]).state;
+      expect(opened.screen).toBe("open");
+
+      const after = run(opened, [
+        { type: "MAINTENANCE_CLEARED", screen: "closed" },
+      ]).state;
+      expect(after.screen).toBe("open");
+      expect(after.session).toBe(opened.session);
+    });
+  });
 });

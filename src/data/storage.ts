@@ -16,6 +16,7 @@ export const KEYS = {
   milestones: "noren:milestones",
   log: "noren:log",
   lastSeen: "noren:lastSeenMs",
+  maintenance: "noren:maintenance",
 } as const;
 
 export type StorageKey = (typeof KEYS)[keyof typeof KEYS];

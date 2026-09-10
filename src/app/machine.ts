@@ -89,6 +89,15 @@ export interface AppState {
 
   /** メンテナンス中ならその表示内容。通常営業なら null。 */
   maintenance: MaintenanceInfo | null;
+
+  /**
+   * メンテナンスの判定待ちか。
+   *
+   * 起動直後は /api/maintenance の返事がまだ無い。**この間に開けてはいけない。**
+   * 閉じている最中に今日の1回を使い切ったうえ、記録まで書かれてしまう。
+   * 旗を立てるのは main.ts（問い合わせを始める側）で、判定が付いた時点で下ろす。
+   */
+  awaitingMaintenance: boolean;
 }
 
 export type Event =
@@ -111,7 +120,9 @@ export type Event =
   | { type: "INSTALL_ACKNOWLEDGED" }
   | { type: "NAVIGATE"; screen: Screen }
   /** メンテナンス中だと分かった。以降どの画面にも戻さない。 */
-  | { type: "MAINTENANCE_SET"; info: MaintenanceInfo };
+  | { type: "MAINTENANCE_SET"; info: MaintenanceInfo }
+  /** 明けたとサーバが答えた。旗を解いて screen へ戻す。 */
+  | { type: "MAINTENANCE_CLEARED"; screen: Screen };
 
 export type Effect =
   | { k: "persist"; what: "settings" | "records" | "tickets" | "milestones" }
@@ -149,6 +160,7 @@ export function isMissed(s: AppState): boolean {
 export function canUseTicket(s: AppState): boolean {
   return (
     s.ready &&
+    !s.awaitingMaintenance &&
     s.session === null &&
     !isSolvedToday(s) &&
     isMissed(s) &&
@@ -295,6 +307,14 @@ function onTick(s: AppState, nowMs: number): Step {
   if (state.session && nowMs >= state.session.endsAtMs) {
     return finishSession(state, timeoutAnswer(state.session), true);
   }
+
+  /*
+   * メンテナンスの判定が返るまでは開けない。
+   *
+   * 問い合わせは最大3秒かかる。その間に定刻を迎えて開けてしまうと、
+   * 閉じている最中に今日の1回が消え、記録まで残る。
+   */
+  if (state.awaitingMaintenance) return noop(state);
 
   // 定刻の開店。画面が閉店中のときだけ自動で開ける
   if (
@@ -452,5 +472,13 @@ export function reduce(s: AppState, e: Event): Step {
         },
         effects: [{ k: "timerStop" }],
       };
+
+    /*
+     * 明けた。**サーバが maintenance:false と答えたときだけここに来る。**
+     * 取れなかっただけで開けてしまうと、保存した旗を残す意味が無くなる。
+     */
+    case "MAINTENANCE_CLEARED":
+      if (s.screen !== "maintenance") return noop(s);
+      return noop({ ...s, maintenance: null, screen: e.screen });
   }
 }

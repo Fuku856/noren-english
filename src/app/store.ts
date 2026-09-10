@@ -29,6 +29,8 @@ export function initialState(nowMs: number, todayKey: string): AppState {
     outcome: null,
     ephemeral: false,
     maintenance: null,
+    // 旗を立てるのは問い合わせを始める側（main.ts）
+    awaitingMaintenance: false,
   };
 }
 
