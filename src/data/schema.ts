@@ -7,6 +7,9 @@
  */
 
 import { DEFAULT_WINDOW, isValidWindow, type TimeWindow } from "@shared/window";
+import type { PendingWindow } from "@shared/schedule";
+
+export type { PendingWindow };
 
 /** 保存形式のバージョン。上げたら src/data/migrate.ts に移行を書く。 */
 export const SCHEMA_VERSION = 1;
@@ -14,12 +17,6 @@ export const SCHEMA_VERSION = 1;
 export type Mode = "speak" | "arrange";
 export type SessionSource = "daily" | "ticket";
 export type RecordKind = "normal" | "review";
-
-export interface PendingWindow {
-  window: TimeWindow;
-  /** この のれん日 から有効。当日変更を許すと窓を狭めて即開店できてしまう。 */
-  effectiveFrom: string;
-}
 
 export interface Settings {
   schemaVersion: number;

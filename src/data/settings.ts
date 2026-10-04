@@ -8,6 +8,7 @@
 
 import { addDays } from "@shared/dateKey";
 import { isValidWindow, type TimeWindow } from "@shared/window";
+import { effectiveWindow } from "@shared/schedule";
 import {
   defaultSettings,
   parseSalt,
@@ -24,16 +25,6 @@ export function loadSettings(): Settings {
 
 export function saveSettings(s: Settings): void {
   writeJson(KEYS.settings, s);
-}
-
-/**
- * その のれん日 に実際に効いている時間帯。
- * pending の effectiveFrom に達していれば pending が勝つ。
- * dateKey は "YYYY-MM-DD" なので辞書順比較でそのまま日付比較になる。
- */
-export function effectiveWindow(s: Settings, dateKey: string): TimeWindow {
-  if (s.pending && dateKey >= s.pending.effectiveFrom) return s.pending.window;
-  return s.window;
 }
 
 /** 時間帯の変更を予約する。反映は翌日から。 */
@@ -88,3 +79,6 @@ export function currentSalt(): string | null {
 }
 
 export { defaultSettings };
+
+/** その のれん日 に効いている時間帯。通知の送信時刻と同じ判定にするため shared/ に置いてある。 */
+export { effectiveWindow };

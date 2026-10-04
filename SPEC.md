@@ -45,18 +45,28 @@ Web Pushはプッシュサービス経由なので、購読情報だけはサー
 
 ```sql
 CREATE TABLE push_subscriptions (
-  endpoint     TEXT PRIMARY KEY,
-  p256dh       TEXT NOT NULL,
-  auth         TEXT NOT NULL,
-  notify_start INTEGER NOT NULL,   -- 分 (0-1439)
-  notify_end   INTEGER NOT NULL,
-  tz_offset    INTEGER NOT NULL,
-  salt         TEXT NOT NULL,      -- 開店時刻の算出に必要
-  created_at   INTEGER NOT NULL
+  endpoint      TEXT PRIMARY KEY,
+  p256dh        TEXT NOT NULL,
+  auth          TEXT NOT NULL,     -- 更新・削除の本人確認にも使う
+  salt          TEXT NOT NULL,     -- 開店時刻の算出に必要
+  notify_start  INTEGER NOT NULL,  -- JST の分 (0-1439)
+  notify_end    INTEGER NOT NULL,
+  pending_start INTEGER,           -- 翌日から効く窓。無ければ NULL
+  pending_end   INTEGER,
+  pending_from  TEXT,              -- その窓が効き始める のれん日
+  next_open_at  INTEGER NOT NULL,  -- 次に送る瞬間 (epoch ms)
+  created_at    INTEGER NOT NULL,
+  updated_at    INTEGER NOT NULL
 );
+CREATE INDEX idx_push_next_open_at ON push_subscriptions (next_open_at);
 ```
 
 `salt` をサーバーにも渡すのは、同じ計算をしないと「何時に送ればいいか」が分からないため。個人を特定できる情報は含まない。
+
+- 端末のタイムゾーンは持たない。窓も開店時刻も JST 固定で決まるので要らない
+- 時間帯の変更は翌日から反映なので、サーバーも「いまの窓」と「明日からの窓」の両方を持つ
+- 開店時刻は SHA-256 由来で SQL では求められない。だから**次に送る瞬間 `next_open_at` を前もって計算して索引を張る**。毎分の送信はこれを引くだけ
+- アカウント登録は無い。購読の endpoint（宛先）と auth（ブラウザだけが知る秘密値）が ID とパスワードの代わりになる
 
 **通知を許可しなければサーバーへの登録は一切発生しない。** 通知オフでも全機能が使える設計にすること（自分で見に来る運用）。
 
@@ -197,9 +207,16 @@ rec.interimResults = false;
 **完全サーバーレスでの定時通知は実現できない。** Service Workerは常駐せず、端末がスリープすればタイマーは止まる。正直にこう設計する。
 
 - **Phase 1〜2：通知なしで作る。** 「今日は21:47に開きます」と表示して、自分で見に来てもらう。これで全機能が動く
-- **Phase 4：Cloudflare Workers + Cron Trigger。** 毎分起動し、その分に開店する購読者を抽出してWeb Push。VAPIDキーはWorker Secretへ
+- **Phase 3：Cloudflare Workers + Cron Trigger。** 毎分起動し、`next_open_at` が来た購読者に Web Push。VAPIDキーはWorker Secretへ
 
 通知本文に問題は含めない。「開きました（残り5分）」だけ。中身を見るには開く必要がある。
+
+- **push に中身（payload）を載せない。** 文言は Service Worker が持つ。載せる手段が無いので問題が漏れようがなく、暗号化も要らない
+- 送信は「次の送信時刻を先に進めてから送る」。二重に届くより1通落ちる方がまし
+- `TTL` は閉店までの残り秒。閉店後に届く通知は嘘になるので送らない
+- 購読の受け口は Pages Functions（`/api/push/subscription`）、送信は別の Worker（Pages Functions には Cron が無い）。両方が同じ D1 を使う
+- 許可を求めるのは設定画面と、その場で通知が使えるときの初回案内画面だけ。閉店中の画面にボタンを足さない
+- 詳細は `docs/notifications-plan.md`
 
 ---
 
@@ -290,8 +307,8 @@ rec.interimResults = false;
 | フロント | Vite + TypeScript（フレームワークなし） |
 | PWA | vite-plugin-pwa |
 | ホスティング | Cloudflare Pages |
-| バックエンド | Cloudflare Workers（通知のみ） |
-| DB | localStorage（購読情報だけD1） |
+| バックエンド | Cloudflare Pages Functions（購読の受け口）+ Workers Cron（送信）。通知のみ |
+| DB | localStorage（購読情報だけD1。Preview と Production で分ける） |
 | 状態管理 | 素のTS |
 
 フレームワークを入れないのは、画面が3つしかなく、**起動速度が体験の中心**だから。「開いた瞬間に問題が出る」ことが5分の価値を決める。
