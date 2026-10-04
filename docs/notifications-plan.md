@@ -4,6 +4,46 @@
 仕様と食い違ったら `SPEC.md` が優先する。ここで仕様を変える必要が出た箇所は
 §3「着手前に決めること」に挙げてあり、決まったら `SPEC.md` 側を先に直す。
 
+## 進み具合（2026-10-04）
+
+| ステップ | 状態 |
+|---|---|
+| 3-1 Web Push の芯 | 済（`worker/src/webpush.ts` / `npm run vapid:gen` / `npm run push:send`） |
+| 3-2 iPhone のスパイク | **未。実機が要る**（下の「デプロイ手順」の後に行う） |
+| 3-3 shared/schedule.ts | 済 |
+| 3-4 D1 ＋ 購読 API | 済（コード）。D1 の作成とバインドは未 |
+| 3-5 Cron Worker | 済（コード）。デプロイは未 |
+| 3-6 端末側 | 済。`VITE_VAPID_PUBLIC_KEY` を入れるまで UI は出ない |
+| 3-7 実機7日・本番 | 未 |
+
+§3 の D1〜D6 は推奨どおりで進めた。D4（wrangler）は devDependencies に**足さず**、
+`npx wrangler` で都度実行する形にした（依存を増やさないため）。
+
+## デプロイ手順（Preview から）
+
+ダッシュボードと手元の端末で行う作業。コードの変更は要らない。
+
+1. **鍵を作る** … `npm run vapid:gen`。出力の秘密鍵はどこにもコミットしない
+2. **D1 を作る**（`worker/` で）
+   - `npx wrangler d1 create noren-push-preview` → 出た ID を `wrangler.toml` の `REPLACE_WITH_PREVIEW_D1_ID` に
+   - `npx wrangler d1 migrations apply noren-push-preview --remote --env preview`
+3. **Worker をデプロイ**（`worker/` で）
+   - `wrangler.toml` の `[env.preview.vars]` に `APP_ORIGIN`（dev ブランチの Preview URL）・
+     `VAPID_PUBLIC_KEY`・`VAPID_SUBJECT`（`mailto:` か `https:`）を書く
+   - `npx wrangler secret put VAPID_PRIVATE_KEY --env preview`
+   - `npx wrangler deploy --env preview`
+4. **Pages の設定**（ダッシュボード → Settings。**Preview 環境だけ**）
+   - Bindings → D1 → 変数名 `DB` に `noren-push-preview`
+   - Environment variables → `VITE_VAPID_PUBLIC_KEY` に公開鍵
+   - dev ブランチを再デプロイ
+5. **3-2 の確認** … iPhone（ホーム画面から起動）と Android Chrome で 設定 → 通知 → 「開いたら通知する」。
+   開店時刻に「開きました（残り5分）」が届き、タップで開店中の画面が出ること。
+   開店を待たずに確かめたいときは、PC につないだ実機の開発者ツール（Android は chrome://inspect）で
+   `JSON.stringify(await (await navigator.serviceWorker.ready).pushManager.getSubscription())` を取り、
+   ファイルに保存して `npm run push:send` で1通送る
+6. 中身なしで iPhone に出なければ、D2 を覆して RFC 8291 の暗号化を `worker/src/webpush.ts` に足す
+7. 7日使って問題が無ければ、Production 用に 2〜4 を繰り返す（`--env` なし・Production 環境）
+
 ---
 
 ## 1. ゴールと守る約束
