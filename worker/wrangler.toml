@@ -1,0 +1,50 @@
+# 通知の送信 Worker（Cron で毎分）。アプリ本体（Cloudflare Pages）とは別にデプロイする。
+#
+# 初回の手順は docs/notifications-plan.md の「デプロイ手順」を見ること。
+#   1. npx wrangler d1 create noren-push            → database_id を下に書く
+#   2. npx wrangler d1 migrations apply noren-push --remote
+#   3. npx wrangler secret put VAPID_PRIVATE_KEY     （npm run vapid:gen の出力）
+#   4. 下の [vars] を埋めて npx wrangler deploy
+#
+# ⚠ これは worker/ 専用。リポジトリ直下に Pages 用の wrangler.toml は置かない
+#   （置くとそれが Pages の設定の正になり、ダッシュボードの MAINTENANCE_MODE 運用が崩れる）。
+
+name = "noren-push"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# HTTP では何も受けない。送信だけの Worker
+workers_dev = false
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "noren-push"
+database_id = "REPLACE_WITH_PRODUCTION_D1_ID"
+migrations_dir = "migrations"
+
+[vars]
+# 空のままだと Worker は何もせずにログだけ出す
+APP_ORIGIN = ""
+VAPID_PUBLIC_KEY = ""
+VAPID_SUBJECT = ""
+
+# Preview（dev ブランチの実機検証用）。購読が本番の DB に混ざらないよう DB も Worker も分ける。
+#   npx wrangler deploy --env preview
+[env.preview]
+name = "noren-push-preview"
+
+[env.preview.triggers]
+crons = ["* * * * *"]
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "noren-push-preview"
+database_id = "REPLACE_WITH_PREVIEW_D1_ID"
+migrations_dir = "migrations"
+
+[env.preview.vars]
+APP_ORIGIN = ""
+VAPID_PUBLIC_KEY = ""
+VAPID_SUBJECT = ""
