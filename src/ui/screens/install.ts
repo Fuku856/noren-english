@@ -6,7 +6,9 @@
  * iOS では別のストレージ領域になって記録が引き継がれない場合がある。
  */
 
+import type { AppState } from "@/app/machine";
 import type { ScreenModule } from "../render";
+import { createPushCard } from "../pushCard";
 import { disposer, listen, qs, show, tmpl } from "../dom";
 import {
   canPromptInstall,
@@ -15,7 +17,10 @@ import {
   promptInstall,
 } from "@/pwa/installPrompt";
 
-export const installScreen: ScreenModule = (root, _state, dispatch) => {
+/** その場で通知を使える状態。iOS の Safari で案内を見ている段階では出さない。 */
+const PUSH_USABLE_NOW = new Set<AppState["push"]["status"]>(["off", "on", "busy", "error", "denied"]);
+
+export const installScreen: ScreenModule = (root, state, dispatch) => {
   const frag = tmpl("tpl-install");
   const bag = disposer();
 
@@ -41,10 +46,18 @@ export const installScreen: ScreenModule = (root, _state, dispatch) => {
     listen(skip, "click", () => dispatch({ type: "INSTALL_ACKNOWLEDGED" })),
   );
 
+  const pushCard = createPushCard(frag, dispatch, {
+    visible: (status) => PUSH_USABLE_NOW.has(status),
+  });
+
   root.append(frag);
+  pushCard.update(state);
 
   return {
-    update() {},
-    destroy: () => bag.dispose(),
+    update: (s) => pushCard.update(s),
+    destroy() {
+      bag.dispose();
+      pushCard.destroy();
+    },
   };
 };

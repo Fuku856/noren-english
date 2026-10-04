@@ -93,6 +93,14 @@
           </p>
         </section>
 
+        <!-- その場で通知が使えるときだけ出す。断っても「はじめる」で進める -->
+        <section class="card" data-push hidden>
+          <p class="field__label">通知</p>
+          <button class="btn" data-push-toggle hidden>開いたら通知する</button>
+          <button class="btn" data-push-guide hidden>追加のしかた</button>
+          <p class="field__hint" data-push-hint></p>
+        </section>
+
         <div class="grow"></div>
 
         <footer class="footer">
@@ -226,6 +234,14 @@
           <p class="field__hint" data-hint></p>
           <button class="btn" data-apply>変更する</button>
           <p class="note" data-pending hidden></p>
+        </section>
+
+        <!-- 通知。通知が無くても全機能が使えるので、出せない端末ではカードごと隠す -->
+        <section class="card" data-push hidden>
+          <p class="field__label">通知</p>
+          <button class="btn" data-push-toggle hidden>開いたら通知する</button>
+          <button class="btn" data-push-guide hidden>追加のしかた</button>
+          <p class="field__hint" data-push-hint></p>
         </section>
 
         <section class="card">

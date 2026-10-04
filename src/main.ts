@@ -26,6 +26,8 @@ import { initStorage, isPersistent } from "./data/storage";
 import { loadTickets, refillIfNeeded, saveTickets } from "./data/tickets";
 import { loadSentences } from "./domain/sentences";
 import { watchInstallPrompt } from "./pwa/installPrompt";
+import { browserPushDeps } from "./push/browser";
+import { createPushClient } from "./push/client";
 import { canUseSpeakMode } from "./speech/capabilities";
 import { speakEnglish } from "./speech/tts";
 import { createTimerBar } from "./ui/components/timerBar";
@@ -85,8 +87,11 @@ function boot(): void {
   const timer =
     timerHost && timerFill ? createTimerBar(timerHost, timerFill) : null;
 
+  // 通知。ここで作るだけで、利用者が押すまでサーバーには通信しない
+  const push = createPushClient(browserPushDeps(now));
+
   store.setEffectRunner(
-    createEffectRunner({ dispatch: store.dispatch, now, timer, speak: speakEnglish }),
+    createEffectRunner({ dispatch: store.dispatch, now, timer, speak: speakEnglish, push }),
   );
   store.subscribe(render);
 
@@ -160,6 +165,14 @@ function boot(): void {
     store.dispatch({ type: "HYDRATED", patch: { awaitingMaintenance: false } });
     store.dispatch({ type: "TICK", nowMs: now() });
   });
+
+  /*
+   * 通知の状態を調べ、オンなら預けた窓を揃える（読み込みで salt が変わった場合もここで拾う）。
+   * 開店の判断には関わらないので、何も待たない。
+   */
+  void push
+    .start({ salt, window: settings.window, pending: settings.pending })
+    .then((status) => store.dispatch({ type: "PUSH_STATUS", status }));
 
   // 例文は画面より後で構わない。開店の瞬間までに間に合えばよい
   void loadSentences()

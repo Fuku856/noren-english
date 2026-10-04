@@ -10,6 +10,7 @@ import { saveRecords } from "@/data/records";
 import { effectiveWindow, saveSettings } from "@/data/settings";
 import { saveTickets } from "@/data/tickets";
 import { KEYS, writeJson } from "@/data/storage";
+import type { PushClient } from "@/push/client";
 import type { AppState, Effect } from "./machine";
 import type { Dispatch } from "./store";
 
@@ -23,6 +24,16 @@ export interface EffectDeps {
   now: () => number;
   timer: TimerHandle | null;
   speak?: (text: string) => void;
+  push?: PushClient;
+}
+
+/** 通知のサーバーに預けるのはこの3つだけ（salt と、いまの窓・予約中の窓）。 */
+function scheduleOf(state: AppState) {
+  return {
+    salt: state.salt,
+    window: state.settings.window,
+    pending: state.settings.pending,
+  };
 }
 
 export function createEffectRunner(deps: EffectDeps) {
@@ -94,6 +105,41 @@ export function createEffectRunner(deps: EffectDeps) {
 
       case "speak": {
         deps.speak?.(effect.text);
+        return;
+      }
+
+      /*
+       * 通知。どれも失敗してもアプリ本体には何も起きない。
+       *
+       * pushEnable は dispatch の中で同期に走る（store.ts）。client.enable は
+       * 最初に許可ダイアログを同期で呼ぶので、クリックの文脈が保たれる。
+       */
+      case "pushEnable": {
+        if (!deps.push) return;
+        void deps.push
+          .enable(scheduleOf(state))
+          .then((status) => deps.dispatch({ type: "PUSH_STATUS", status }));
+        return;
+      }
+
+      case "pushDisable": {
+        if (!deps.push) return;
+        void deps.push
+          .disable()
+          .then((status) => deps.dispatch({ type: "PUSH_STATUS", status }));
+        return;
+      }
+
+      case "pushSync": {
+        if (!deps.push) return;
+        void deps.push
+          .sync(scheduleOf(state))
+          .then((status) => deps.dispatch({ type: "PUSH_STATUS", status }));
+        return;
+      }
+
+      case "clearNotifications": {
+        deps.push?.clearNotifications();
         return;
       }
     }

@@ -17,6 +17,8 @@ export const KEYS = {
   log: "noren:log",
   lastSeen: "noren:lastSeenMs",
   maintenance: "noren:maintenance",
+  /** 通知の購読（端末ごと）。書き出し（バックアップ）には含めない。 */
+  push: "noren:push",
 } as const;
 
 export type StorageKey = (typeof KEYS)[keyof typeof KEYS];

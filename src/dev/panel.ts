@@ -11,6 +11,7 @@ import { SESSION_MS } from "@shared/openTime";
 import { getOffset, now, resetClock, setNow } from "@/app/clock";
 import { clearAll } from "@/data/storage";
 import { cycleFakeStt, fakeStt, FAKE_STT_LABEL } from "./fakeStt";
+import { cycleFakePush, fakePush, FAKE_PUSH_LABEL } from "./fakePush";
 import type { Store } from "@/app/store";
 
 export function installDevPanel(store: Store): void {
@@ -20,6 +21,7 @@ export function installDevPanel(store: Store): void {
     <button data-open>開店時刻へ</button>
     <button data-speak>音読で開く</button>
     <button data-stt>マイク: 実機</button>
+    <button data-push>通知: 実機</button>
     <button data-expire>時間切れ</button>
     <button data-nextday>+1日</button>
     <button data-maint>メンテ表示</button>
@@ -30,6 +32,7 @@ export function installDevPanel(store: Store): void {
 
   const info = host.querySelector("[data-info]")!;
   const sttBtn = host.querySelector("[data-stt]")!;
+  const pushBtn = host.querySelector("[data-push]")!;
   const refresh = () => {
     const s = store.getState();
     const off = Math.round(getOffset() / 60_000);
@@ -38,6 +41,7 @@ export function installDevPanel(store: Store): void {
       s.openMinute ?? "?"
     } / ずれ ${off}分 / ${mode === "speak" ? "音読" : "並べ替え"}`;
     sttBtn.textContent = `マイク: ${FAKE_STT_LABEL[fakeStt()]}`;
+    pushBtn.textContent = `通知: ${FAKE_PUSH_LABEL[fakePush()]} (${s.push.status})`;
   };
 
   const jump = (ms: number) => {
@@ -73,6 +77,16 @@ export function installDevPanel(store: Store): void {
   host.querySelector("[data-stt]")!.addEventListener("click", () => {
     cycleFakeStt();
     refresh();
+  });
+
+  /*
+   * 通知の模擬。dev サーバには SW も /api/push も無いので、ここを通さないと
+   * 設定画面の「通知」の各状態を一度も見られない。模擬でもサーバーには通信しない。
+   * 経路は起動時に決まるので、切り替えたら読み込み直す。
+   */
+  pushBtn.addEventListener("click", () => {
+    cycleFakePush();
+    location.reload();
   });
 
   host.querySelector("[data-expire]")!.addEventListener("click", () => {

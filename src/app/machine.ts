@@ -29,6 +29,7 @@ import type {
 } from "@/data/schema";
 import { openedRecord, solvedRecord, upsertRecord } from "@/data/records";
 import { canSpend, spend } from "@/data/tickets";
+import type { PushStatus } from "@/push/client";
 
 // ---------------------------------------------------------------- 型
 
@@ -98,6 +99,12 @@ export interface AppState {
    * 旗を立てるのは main.ts（問い合わせを始める側）で、判定が付いた時点で下ろす。
    */
   awaitingMaintenance: boolean;
+
+  /**
+   * 通知の状態。**通知が無くても全機能が動く**ので、ここは画面の文言を変えるだけで、
+   * 開店の判断には一切使わない。
+   */
+  push: { status: PushStatus };
 }
 
 export type Event =
@@ -122,7 +129,12 @@ export type Event =
   /** メンテナンス中だと分かった。以降どの画面にも戻さない。 */
   | { type: "MAINTENANCE_SET"; info: MaintenanceInfo }
   /** 明けたとサーバが答えた。旗を解いて screen へ戻す。 */
-  | { type: "MAINTENANCE_CLEARED"; screen: Screen };
+  | { type: "MAINTENANCE_CLEARED"; screen: Screen }
+  /** 通知の状態が分かった・変わった。 */
+  | { type: "PUSH_STATUS"; status: PushStatus }
+  /** 「開いたら通知する」が押された。**クリックの中から同期で dispatch すること。** */
+  | { type: "PUSH_ENABLE_REQUESTED" }
+  | { type: "PUSH_DISABLE_REQUESTED" };
 
 export type Effect =
   | { k: "persist"; what: "settings" | "records" | "tickets" | "milestones" }
@@ -130,7 +142,14 @@ export type Effect =
   | { k: "timerStart"; endsAtMs: number; totalMs: number }
   | { k: "timerStop" }
   | { k: "speak"; text: string }
-  | { k: "armTimer"; atMs: number };
+  | { k: "armTimer"; atMs: number }
+  /** 許可を求めて購読する。Effect は dispatch の中で同期に走るので、クリックの文脈が保たれる。 */
+  | { k: "pushEnable" }
+  | { k: "pushDisable" }
+  /** 時間帯が変わった。サーバーに預けた窓を揃える（変化が無ければ通信しない）。 */
+  | { k: "pushSync" }
+  /** 開いたので、残っている「開きました」を消す。 */
+  | { k: "clearNotifications" };
 
 export interface Step {
   state: AppState;
@@ -166,6 +185,16 @@ export function canUseTicket(s: AppState): boolean {
     isMissed(s) &&
     canSpend(s.tickets)
   );
+}
+
+/** 「開いたら通知する」を押せる状態か。 */
+export function canEnablePush(s: AppState): boolean {
+  return s.push.status === "off" || s.push.status === "error";
+}
+
+/** 通知がオンなら、サーバーに預けた窓を揃える Effect。 */
+function pushSyncIfOn(s: AppState): Effect[] {
+  return s.push.status === "on" ? [{ k: "pushSync" }] : [];
 }
 
 /** 閉店画面に出す「本日 HH:MM」。 */
@@ -207,6 +236,7 @@ function startSession(
     { k: "timerStart", endsAtMs, totalMs },
     { k: "armTimer", atMs: endsAtMs },
     { k: "persist", what: "records" },
+    { k: "clearNotifications" },
   ];
   // 音読は「読み上げを聞いてから真似る」。開いた瞬間に一度だけ鳴らす
   if (session.mode === "speak") effects.push({ k: "speak", text: sentence.en });
@@ -427,7 +457,7 @@ export function reduce(s: AppState, e: Event): Step {
       };
       return {
         state: { ...s, settings },
-        effects: [{ k: "persist", what: "settings" }],
+        effects: [{ k: "persist", what: "settings" }, ...pushSyncIfOn(s)],
       };
     }
 
@@ -440,6 +470,7 @@ export function reduce(s: AppState, e: Event): Step {
         effects: [
           { k: "persist", what: "settings" },
           { k: "resolveOpenTime", dateKey: s.todayKey },
+          ...pushSyncIfOn(s),
         ],
       };
     }
@@ -480,5 +511,17 @@ export function reduce(s: AppState, e: Event): Step {
     case "MAINTENANCE_CLEARED":
       if (s.screen !== "maintenance") return noop(s);
       return noop({ ...s, maintenance: null, screen: e.screen });
+
+    case "PUSH_STATUS":
+      if (s.push.status === e.status) return noop(s);
+      return noop({ ...s, push: { status: e.status } });
+
+    case "PUSH_ENABLE_REQUESTED":
+      if (!canEnablePush(s)) return noop(s);
+      return { state: { ...s, push: { status: "busy" } }, effects: [{ k: "pushEnable" }] };
+
+    case "PUSH_DISABLE_REQUESTED":
+      if (s.push.status !== "on") return noop(s);
+      return { state: { ...s, push: { status: "busy" } }, effects: [{ k: "pushDisable" }] };
   }
 }
