@@ -562,3 +562,65 @@ describe("メンテナンス", () => {
     });
   });
 });
+
+describe("通知", () => {
+  const at = jst("2026-08-18T20:00:00");
+  const withPush = (status: AppState["push"]["status"]) =>
+    run(boot(at), [{ type: "PUSH_STATUS", status }]).state;
+
+  it("起動直後は hidden（状態が分かるまで UI を出さない）", () => {
+    expect(initialState(at, DAY).push.status).toBe("hidden");
+  });
+
+  it("off から押すと busy になり、pushEnable が出る", () => {
+    const step = reduce(withPush("off"), { type: "PUSH_ENABLE_REQUESTED" });
+    expect(step.state.push.status).toBe("busy");
+    expect(step.effects).toEqual([{ k: "pushEnable" }]);
+  });
+
+  it("error からもやり直せる", () => {
+    expect(reduce(withPush("error"), { type: "PUSH_ENABLE_REQUESTED" }).effects).toEqual([
+      { k: "pushEnable" },
+    ]);
+  });
+
+  it("使えない状態では押しても何も起きない", () => {
+    for (const status of ["hidden", "unsupported", "needs-install", "denied", "reopen", "busy", "on"] as const) {
+      const step = reduce(withPush(status), { type: "PUSH_ENABLE_REQUESTED" });
+      expect(step.effects, status).toEqual([]);
+      expect(step.state.push.status).toBe(status);
+    }
+  });
+
+  it("on から止めると pushDisable", () => {
+    const step = reduce(withPush("on"), { type: "PUSH_DISABLE_REQUESTED" });
+    expect(step.state.push.status).toBe("busy");
+    expect(step.effects).toEqual([{ k: "pushDisable" }]);
+    expect(reduce(withPush("off"), { type: "PUSH_DISABLE_REQUESTED" }).effects).toEqual([]);
+  });
+
+  it("時間帯を変えたら、オンのときだけ預けた窓を揃える", () => {
+    const window = { start: 19 * 60, end: 21 * 60 };
+    const on = reduce(withPush("on"), { type: "WINDOW_REQUESTED", window });
+    expect(on.effects).toContainEqual({ k: "pushSync" });
+
+    const off = reduce(withPush("off"), { type: "WINDOW_REQUESTED", window });
+    expect(off.effects).not.toContainEqual({ k: "pushSync" });
+  });
+
+  it("開いたら、残っている通知を消す", () => {
+    const step = run(boot(jst("2026-08-18T21:00:00")), [{ type: "TICK", nowMs: OPEN_AT }]);
+    expect(step.state.screen).toBe("open");
+    expect(step.effects).toContainEqual({ k: "clearNotifications" });
+  });
+
+  it("通知の状態は開店の判断に関わらない（通知が無くても開く）", () => {
+    for (const status of ["hidden", "off", "on", "denied", "error"] as const) {
+      const s = run(boot(jst("2026-08-18T21:00:00")), [
+        { type: "PUSH_STATUS", status },
+        { type: "TICK", nowMs: OPEN_AT },
+      ]).state;
+      expect(s.screen, status).toBe("open");
+    }
+  });
+});

@@ -46,6 +46,8 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,woff2,png,webp,json}"],
         // 例文JSONはオフラインでも確実に引けるようプリキャッシュ対象に含める
         navigateFallback: "/index.html",
+        // 通知の受け口。生成される SW 本体には手を入れず、ここで読ませる（public/sw-push.js）
+        importScripts: ["/sw-push.js"],
       },
     }),
   ],

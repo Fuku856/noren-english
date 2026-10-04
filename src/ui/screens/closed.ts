@@ -22,7 +22,8 @@ function note(s: AppState): string {
   if (!s.ready) return "";
   if (isSolvedToday(s)) return "今日は終わりました";
   if (isMissed(s)) return "今日は閉まりました";
-  // 通知はまだ無い。自分で見に来てもらう前提を正直に書く
+  // 通知は届かないこともある。オフなら自分で見に来てもらう前提を正直に書く
+  if (s.push.status === "on") return "開いたら通知でお知らせします";
   return "その時刻にアプリを開くと、5分だけ問題が出ます";
 }
 

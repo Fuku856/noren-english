@@ -31,6 +31,8 @@ export function initialState(nowMs: number, todayKey: string): AppState {
     maintenance: null,
     // 旗を立てるのは問い合わせを始める側（main.ts）
     awaitingMaintenance: false,
+    // 公開鍵が無いビルドや、状態を調べ終わるまでは通知の UI を出さない
+    push: { status: "hidden" },
   };
 }
 

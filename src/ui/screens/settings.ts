@@ -18,6 +18,7 @@ import type { ScreenModule } from "../render";
 import { disposer, listen, qs, setAttr, setText, show, tmpl } from "../dom";
 import { downloadJson, readJsonFile } from "../download";
 import { createWindowPicker } from "../windowPicker";
+import { createPushCard } from "../pushCard";
 
 export const settingsScreen: ScreenModule = (root, state, dispatch) => {
   const frag = tmpl("tpl-settings");
@@ -37,6 +38,12 @@ export const settingsScreen: ScreenModule = (root, state, dispatch) => {
   const transferHint = qs(frag, "[data-transfer-hint]");
 
   let current = state;
+
+  // 公開鍵の無いビルド（hidden）以外では出す。使えない理由も正直に書く
+  const pushCard = createPushCard(frag, dispatch, {
+    visible: (status) => status !== "hidden",
+    onInstallGuide: () => dispatch({ type: "NAVIGATE", screen: "install" }),
+  });
 
   const picker = createWindowPicker(frag, effectiveWindow(state.settings, state.todayKey));
   picker.onChange((_w, valid) => {
@@ -151,6 +158,7 @@ export const settingsScreen: ScreenModule = (root, state, dispatch) => {
     if (modeSelect.value !== mode) modeSelect.value = mode;
 
     if (s.db) setAttr(license, "href", s.db.licenseUrl);
+    pushCard.update(s);
   };
 
   root.append(frag);
@@ -161,6 +169,7 @@ export const settingsScreen: ScreenModule = (root, state, dispatch) => {
     destroy() {
       bag.dispose();
       picker.destroy();
+      pushCard.destroy();
     },
   };
 };

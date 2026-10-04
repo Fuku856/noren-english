@@ -11,6 +11,9 @@
       "path": "./tsconfig.functions.json"
     },
     {
+      "path": "./tsconfig.worker.json"
+    },
+    {
       "path": "./tsconfig.test.json"
     }
   ]

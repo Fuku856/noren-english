@@ -51,9 +51,17 @@ function stripMemberNames(src: string): string {
 
 const rel = (f: string) => relative(ROOT, f).split(sep).join("/");
 
-describe("時刻は src/app/clock.ts だけが触る", () => {
-  const files = [...walk(join(ROOT, "src")), ...walk(join(ROOT, "shared"))].filter(
-    (f) => !f.endsWith(".test.ts") && !f.endsWith(join("app", "clock.ts")),
+describe("時刻は src/app/clock.ts（と Worker の入口）だけが触る", () => {
+  // worker/src は入口（index.ts）だけが Cron の時刻を取ってよい。中身は引数で受け取る
+  const files = [
+    ...walk(join(ROOT, "src")),
+    ...walk(join(ROOT, "shared")),
+    ...walk(join(ROOT, "worker", "src")),
+  ].filter(
+    (f) =>
+      !f.endsWith(".test.ts") &&
+      !f.endsWith(join("app", "clock.ts")) &&
+      !f.endsWith(join("worker", "src", "index.ts")),
   );
 
   it("対象ファイルを走査できている", () => {
